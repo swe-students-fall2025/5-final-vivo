@@ -1,4 +1,26 @@
 const map = L.map('map').setView([40.7128, -74.0060], 13); 
+
+// search bar filter nyc
+const nycViewbox = '-74.2591,40.9176,-73.7004,40.4774'; 
+
+L.Control.geocoder({
+    defaultMarkGeocode: false,
+    placeholder: "Search NYC...",
+    geocoder: L.Control.Geocoder.nominatim({
+        geocodingQueryParams: {
+            viewbox: nycViewbox,
+            bounded: 1
+        }
+    })
+})
+.on('markgeocode', function(e) {
+    const center = e.geocode.center;
+    map.setView(center, 19);
+
+})
+.addTo(map)
+.setPosition('topleft');
+
 L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
     attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
