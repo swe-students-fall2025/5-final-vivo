@@ -11,6 +11,7 @@ camera.position.z = 13;
 
 const scene = new THREE.Scene();
 let bath;
+let mixer;
 const loader = new GLTFLoader();
 loader.load('/static/plastic_toilet_cabin.glb',
     function (gltf) {
@@ -30,8 +31,6 @@ const renderer = new THREE.WebGLRenderer({alpha: true});
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.getElementById('container3D').appendChild(renderer.domElement);
 
-
-
 //light
 const ambientLight = new THREE.AmbientLight(0xffffff, 1.3);
 scene.add(ambientLight);
@@ -40,3 +39,9 @@ const topLight = new THREE.DirectionalLight(0xffffff, 1);
 topLight.position.set(500, 500, 500);
 scene.add(topLight);
 
+const reRender3D = () => {
+    requestAnimationFrame(reRender3D);
+    renderer.render(scene, camera);
+    if(mixer) mixer.update(0.02);
+};
+reRender3D();
