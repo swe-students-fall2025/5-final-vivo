@@ -158,3 +158,44 @@ header .content-fit {
     height: 1.5em;
     width: 1.5em;
 }
+
+
+#container3D {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    pointer-events: none;
+}
+
+/* responsiveness */
+@media screen and (max-width: 1023px) {
+    #banner .title {
+        font-size: 5em;
+    }
+    #intro .content-fit {
+        flex-direction: column;
+    }
+}
+
+@media screen and (max-width: 767px) {
+    #banner .title {
+        font-size: 3em;
+    }
+    #intro .content-fit {
+        flex-direction: column;
+    }
+    .section .number {
+        font-size: 5em;
+    }
+    .section .content-fit .title {
+        font-size: 2em;
+    }
+    #description .content-fit {
+        flex-direction: column;
+        padding-right: 0;
+        align-items: flex-start;
+    }
+    #container3D {
+        position: absolute;
+    }
+}
