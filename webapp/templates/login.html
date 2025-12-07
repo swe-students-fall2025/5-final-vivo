@@ -2,22 +2,60 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIVO</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 
-<body class="bg-gray-100 flex items-center justify-center h-screen">
-  <div class="bg-white p-8 rounded-lg shadow-md w-96 text-center">
-    <h2 class="text-2xl font-bold mb-6 text-gray-800">Login</h2>
-    <a href="{{ url_for('login_google') }}"
-      class="flex items-center justify-center w-full bg-white border border-gray-300 rounded-lg px-6 py-3 text-sm font-medium text-gray-800 hover:bg-gray-50 transition-colors duration-200 shadow-sm">
-      <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="h-6 w-6 mr-2" alt="Google logo">
-      <span>Login with Google</span>
-    </a>
-  </div>
+<body>
+    <header>
+        <div class="content-fit">
+            <div class="logo">Di2</div>
+        </div>
+    </header>
+
+    <div class="section" id="banner">
+        <div class="content-fit">
+            <div class="title" data-before="vivo">DI2</div>
+        </div>
+    </div>
+
+    <div class="section" id="intro">
+        <div class="content-fit">
+            <div class="number">01</div>
+            <div class="des">
+                <div class="title">Find Bathrooms in NYC</div>
+                <p>Quickly locate public bathrooms near you in New York City. Filter by rating and distance, 
+               read reviews left by other users, and plan your visit with ease. Stay comfortable while exploring the city...</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="section" id="description">
+        <div class="content-fit">
+            <div class="number">02</div>
+            <div class="des">
+                <div class="title">WHY US?</div>
+                <p>Our app helps you find the nearest bathrooms in NYC with ease. 
+               See user ratings, distance from your location, and read real reviews to make the best choice. 
+               Perfect for tourists, commuters, or anyone on the go...</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="section" id="login">
+        <div class="content-fit">
+            <a href="{{ url_for('login_google') }}" class="google-btn">
+                <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google logo">
+                <span>Login with Google</span>
+            </a>
+        </div>
+    </div>
+
+
+    <div id="container3D"></div>
+    <script type="module" src="{{ url_for('static', filename='app.js') }}"></script>
 </body>
 
 </html>
