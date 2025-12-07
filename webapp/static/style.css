@@ -1,0 +1,29 @@
+@import url('https://fonts.cdnfonts.com/css/devil-breeze');
+@import url('https://fonts.cdnfonts.com/css/poppins');
+@import url('https://fonts.cdnfonts.com/css/bimbo');
+
+body {
+    margin: 0;
+    font-family: "Montserrat", sans-serif;
+    background-color: #26384c;
+    color: #e0e5ce;
+    font-family: 'Poppins', sans-serif;
+    font-size: 14px;
+    background-image:
+        url(img/bg.png),
+        repeating-linear-gradient(
+            to right, transparent 0 500px, #73814B33 500px 501px
+        );
+    background-size: 100%;
+}
+
+*::-webkit-scrollbar {
+    width: 0;
+}
+
+* {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+    box-sizing: border-box;
+}
