@@ -29,7 +29,6 @@ body {
 }
 
 /* section and header */
-
 .section {
     width: 100%;
     min-height: 100vh;
@@ -66,4 +65,42 @@ header .content-fit {
     align-items: center;
     min-height: unset!important;
     padding-block: unset!important;
+}
+
+/* banner and intro */
+#banner .title {
+    color: #3864c9;
+    font-size: 11em;
+    font-family: "devil breeze";
+    font-weight: bold;
+    position: relative;
+    text-align: left;
+}
+
+#banner .title::before {
+    content: attr(data-before);
+    position: absolute;
+    top: 0.5em;
+    inset: 0.66em 0 0 0;
+    z-index: -1;
+    color: #ebf7ca;
+}
+
+#intro .content-fit {
+    display: flex;
+    gap: 30%;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.section .number {
+    font-family: "devil breeze";
+    font-size: 15em;
+    font-weight: bold;
+}
+
+.section .content-fit .title {
+    font-family: "devil breeze";
+    font-size: 5em;
+    font-weight: bold;
 }
