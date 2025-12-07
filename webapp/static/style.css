@@ -104,3 +104,22 @@ header .content-fit {
     font-size: 5em;
     font-weight: bold;
 }
+
+
+/* description */
+#description .content-fit {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-right: 30%;
+    gap: 2em;
+}
+
+#description .number {
+    font-size: 5em;
+}
+
+#description .title {
+    font-size: 7em;
+    font-weight: 500;
+}
