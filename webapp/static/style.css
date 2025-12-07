@@ -123,3 +123,38 @@ header .content-fit {
     font-size: 7em;
     font-weight: 500;
 }
+
+
+#login .content-fit {
+    display: flex;
+    justify-content: flex-start;
+    align-items: flex-start;
+    min-height: 100vh;
+    padding-left: 2em;
+}
+
+#login .google-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5em;
+    background: white;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5em;
+    padding: 0.8em 1em;
+    font-size: 1em;
+    font-weight: 500;
+    color: #1f2937;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+#login .google-btn:hover {
+    background: #f3f4f6;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+#login .google-btn img {
+    height: 1.5em;
+    width: 1.5em;
+}
