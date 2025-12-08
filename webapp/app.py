@@ -1,6 +1,7 @@
 import os
-from flask import Flask, render_template, url_for, session, redirect, flash
+from flask import Flask, render_template, url_for, session, redirect, flash, jsonify
 from authlib.integrations.flask_client import OAuth
+from pymongo import MongoClient
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "dev_key")
@@ -16,6 +17,11 @@ oauth.register(
     client_kwargs={"scope": "openid email profile"},
 )
 
+# Mongo
+mongo_uri = os.environ.get("MONGO_URI") 
+client = MongoClient(mongo_uri)
+db = client["bathrooms"]
+bathrooms_collection = db["bathrooms"]
 
 @app.route("/")
 def index():
@@ -59,6 +65,17 @@ def logout():
     session.pop("user", None)
     return redirect(url_for("login"))
 
+@app.route("/api/bathrooms")
+def get_bathrooms():
+    bathrooms = []
+    for doc in bathrooms_collection.find():
+        bathrooms.append({
+            "osm_id": doc["osm_id"],
+            "lat": doc["lat"],
+            "lon": doc["lon"],
+            "tags": doc.get("tags", {})
+        })
+    return jsonify({"bathrooms": bathrooms})
 
 if __name__ == "__main__":
     app.run(debug=True)
