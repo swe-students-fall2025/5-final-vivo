@@ -1,5 +1,14 @@
 import os
-from flask import Flask, render_template, url_for, session, redirect, flash, jsonify, request
+from flask import (
+    Flask,
+    render_template,
+    url_for,
+    session,
+    redirect,
+    flash,
+    jsonify,
+    request,
+)
 from authlib.integrations.flask_client import OAuth
 from pymongo import MongoClient
 from datetime import datetime
@@ -19,10 +28,12 @@ oauth.register(
 )
 
 # Mongo
-mongo_uri = os.environ.get("MONGO_URI") 
+mongo_uri = os.environ.get("MONGO_URI")
 client = MongoClient(mongo_uri)
 db = client["bathrooms"]
 bathrooms_collection = db["bathrooms"]
+users_collection = db["users"]
+
 
 @app.route("/")
 def index():
@@ -51,11 +62,42 @@ def authorized():
         return redirect(url_for("login"))
 
     user_info = oauth.google.get("userinfo").json()
+
+    email = user_info.get("email")
+    if not email:
+        flash("Unable to retrieve email from Google. Please try again.")
+        return redirect(url_for("login"))
+
+    existing_user = users_collection.find_one({"email": email})
+
+    if not existing_user:
+        new_user = {
+            "email": email,
+            "name": user_info.get("name"),
+            "picture": user_info.get("picture"),
+            "created_at": datetime.utcnow(),
+            "updated_at": datetime.utcnow(),
+        }
+        result = users_collection.insert_one(new_user)
+        user_record = users_collection.find_one({"_id": result.inserted_id})
+    else:
+        users_collection.update_one(
+            {"_id": existing_user["_id"]},
+            {
+                "$set": {
+                    "name": user_info.get("name"),
+                    "picture": user_info.get("picture"),
+                    "updated_at": datetime.utcnow(),
+                }
+            },
+        )
+        user_record = users_collection.find_one({"_id": existing_user["_id"]})
+
     session["user"] = {
-        "id": user_info.get("id"),
-        "name": user_info.get("name"),
-        "email": user_info.get("email"),
-        "picture": user_info.get("picture"),
+        "id": str(user_record.get("_id")),
+        "name": user_record.get("name"),
+        "email": user_record.get("email"),
+        "picture": user_record.get("picture"),
     }
 
     return redirect(url_for("index"))
@@ -66,16 +108,19 @@ def logout():
     session.pop("user", None)
     return redirect(url_for("login"))
 
+
 @app.route("/api/bathrooms")
 def get_bathrooms():
     bathrooms = []
     for doc in bathrooms_collection.find():
-        bathrooms.append({
-            "osm_id": doc["osm_id"],
-            "lat": doc["lat"],
-            "lon": doc["lon"],
-            "tags": doc.get("tags", {})
-        })
+        bathrooms.append(
+            {
+                "osm_id": doc["osm_id"],
+                "lat": doc["lat"],
+                "lon": doc["lon"],
+                "tags": doc.get("tags", {}),
+            }
+        )
     return jsonify({"bathrooms": bathrooms})
 
 
@@ -102,15 +147,17 @@ def add_bathroom():
         if field not in data:
             return jsonify({"error": f"Missing field: {field}"}), 400
 
-    bathrooms_collection.insert_one({
-        "osm_id": data["osm_id"],
-        "lat": data["lat"],
-        "lon": data["lon"],
-        "tags": data.get("tags", {}),
-        "reviews": [],
-        "average_rating": None,
-        "rating_count": 0,
-    })
+    bathrooms_collection.insert_one(
+        {
+            "osm_id": data["osm_id"],
+            "lat": data["lat"],
+            "lon": data["lon"],
+            "tags": data.get("tags", {}),
+            "reviews": [],
+            "average_rating": None,
+            "rating_count": 0,
+        }
+    )
 
     return jsonify({"message": "Bathroom added!", "bathroom": data}), 201
 
@@ -119,6 +166,7 @@ def add_bathroom():
 def get_bathrooms_full():
     bathrooms = [serialize_bathroom(doc) for doc in bathrooms_collection.find()]
     return jsonify({"bathrooms": bathrooms})
+
 
 @app.route("/api/bathrooms/<string:osm_id>", methods=["GET"])
 def get_bathroom_detail(osm_id):
@@ -151,7 +199,7 @@ def add_bathroom_review(osm_id):
     doc = bathrooms_collection.find_one({"osm_id": osm_id})
     if not doc:
         return jsonify({"error": "Bathroom not found"}), 404
-    
+
     user = session.get("user") or {}
     user_email = user.get("email")
     if not user_email:
@@ -193,13 +241,14 @@ def add_bathroom_review(osm_id):
             "$set": {
                 "reviews": new_reviews,
                 "average_rating": new_avg,
-                "rating_count": new_count
+                "rating_count": new_count,
             }
-        }
+        },
     )
 
     updated = bathrooms_collection.find_one({"osm_id": osm_id})
     return jsonify(serialize_bathroom(updated)), 201
+
 
 if __name__ == "__main__":
     app.run(debug=True)
