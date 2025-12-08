@@ -1,201 +1,200 @@
-@import url('https://fonts.cdnfonts.com/css/devil-breeze');
-@import url('https://fonts.cdnfonts.com/css/poppins');
-@import url('https://fonts.cdnfonts.com/css/bimbo');
+@import url("https://fonts.cdnfonts.com/css/devil-breeze");
+@import url("https://fonts.cdnfonts.com/css/poppins");
+@import url("https://fonts.cdnfonts.com/css/bimbo");
 
 body {
-    margin: 0;
-    font-family: "Montserrat", sans-serif;
-    background-color: #26384c;
-    color: #e0e5ce;
-    font-family: 'Poppins', sans-serif;
-    font-size: 14px;
-    background-image:
-        url(img/bg.png),
-        repeating-linear-gradient(
-            to right, transparent 0 500px, #73814B33 500px 501px
-        );
-    background-size: 100%;
+  margin: 0;
+  font-family: "Montserrat", sans-serif;
+  background-color: #26384c;
+  color: #e0e5ce;
+  font-family: "Poppins", sans-serif;
+  font-size: 14px;
+  background-image: url(img/bg.png),
+    repeating-linear-gradient(
+      to right,
+      transparent 0 500px,
+      #73814b33 500px 501px
+    );
+  background-size: 100%;
 }
 
 *::-webkit-scrollbar {
-    width: 0;
+  width: 0;
 }
 
 * {
-    padding: 0;
-    margin: 0;
-    list-style: none;
-    box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  box-sizing: border-box;
 }
 
 /* section and header */
 .section {
-    width: 100%;
-    min-height: 100vh;
-    position: relative;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+  width: 100%;
+  min-height: 100vh;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1;
 }
 
 .content-fit {
-    width: min(1200px, 90vw);
-    margin: auto;
-    min-height: 100vh;
-    position: relative;
-    padding-block: 10em;
+  width: min(1200px, 90vw);
+  margin: auto;
+  min-height: 100vh;
+  position: relative;
+  padding-block: 10em;
 }
 
 header {
-    padding-block: 1em;
-    position: fixed;
-    top: 0;
-    width: 100%;
-    z-index: 100;
-    backdrop-filter: blur(20px);
-    background-color: #1B1B1B11;
-    background-image: repeating-linear-gradient(
-        to right, transparent 0 500px, #eee1 500px 501px
-    );
+  padding-block: 1em;
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 200;
+  backdrop-filter: blur(20px);
+  background-color: #1b1b1b11;
+  background-image: repeating-linear-gradient(
+    to right,
+    transparent 0 500px,
+    #eee1 500px 501px
+  );
 }
 
 header .content-fit {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    min-height: unset!important;
-    padding-block: unset!important;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: unset !important;
+  padding-block: unset !important;
 }
 
 /* banner and intro */
 #banner .title {
-    color: #3864c9;
-    font-size: 11em;
-    font-family: "devil breeze";
-    font-weight: bold;
-    position: relative;
-    text-align: left;
+  color: #3864c9;
+  font-size: 11em;
+  font-family: "devil breeze";
+  font-weight: bold;
+  position: relative;
+  text-align: left;
 }
 
 #banner .title::before {
-    content: attr(data-before);
-    position: absolute;
-    top: 0.5em;
-    inset: 0.66em 0 0 0;
-    z-index: -1;
-    color: #ebf7ca;
+  content: attr(data-before);
+  position: absolute;
+  top: 0.5em;
+  inset: 0.66em 0 0 0;
+  z-index: -1;
+  color: #ebf7ca;
 }
 
 #intro .content-fit {
-    display: flex;
-    gap: 30%;
-    justify-content: space-between;
-    align-items: center;
+  display: flex;
+  gap: 35%;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .section .number {
-    font-family: "devil breeze";
-    font-size: 15em;
-    font-weight: bold;
+  font-family: "devil breeze";
+  font-size: 15em;
+  font-weight: bold;
 }
 
 .section .content-fit .title {
-    font-family: "devil breeze";
-    font-size: 5em;
-    font-weight: bold;
+  font-family: "devil breeze";
+  font-size: 5em;
+  font-weight: bold;
 }
-
 
 /* description */
 #description .content-fit {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-right: 30%;
-    gap: 2em;
-}
-
-#description .number {
-    font-size: 5em;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-right: 30%;
+  gap: 2em;
 }
 
 #description .title {
-    font-size: 7em;
-    font-weight: 500;
+  font-size: 7em;
+  font-weight: 500;
 }
 
-
-#login .content-fit {
-    display: flex;
-    justify-content: flex-start;
-    align-items: flex-start;
-    min-height: 100vh;
-    padding-left: 2em;
+#description .number {
+  font-size: 10em;
 }
 
-#login .google-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5em;
-    background: white;
-    border: 1px solid #d1d5db;
-    border-radius: 0.5em;
-    padding: 0.8em 1em;
-    font-size: 1em;
-    font-weight: 500;
-    color: #1f2937;
-    text-decoration: none;
-    transition: all 0.2s ease;
+.google-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5em;
+  background: white;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5em;
+  padding: 0.8em 1em;
+  font-size: 1em;
+  font-weight: 600;
+  color: #1f2937;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
 }
 
-#login .google-btn:hover {
-    background: #f3f4f6;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+.google-btn:hover {
+  background: #f3f4f6;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.16);
+  transform: translateY(-1px);
 }
 
-#login .google-btn img {
-    height: 1.5em;
-    width: 1.5em;
+.google-btn img {
+  height: 1.5em;
+  width: 1.5em;
 }
 
+.devil {
+  font-family: "devil breeze";
+}
 
 #container3D {
-    position: fixed;
-    inset: 0;
-    z-index: 100;
-    pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
 }
 
 /* responsiveness */
 @media screen and (max-width: 1023px) {
-    #banner .title {
-        font-size: 5em;
-    }
-    #intro .content-fit {
-        flex-direction: column;
-    }
+  #banner .title {
+    font-size: 5em;
+  }
+  #intro .content-fit {
+    flex-direction: column;
+  }
 }
 
 @media screen and (max-width: 767px) {
-    #banner .title {
-        font-size: 3em;
-    }
-    #intro .content-fit {
-        flex-direction: column;
-    }
-    .section .number {
-        font-size: 5em;
-    }
-    .section .content-fit .title {
-        font-size: 2em;
-    }
-    #description .content-fit {
-        flex-direction: column;
-        padding-right: 0;
-        align-items: flex-start;
-    }
-    #container3D {
-        position: absolute;
-    }
+  #banner .title {
+    font-size: 3em;
+  }
+  #intro .content-fit {
+    flex-direction: column;
+  }
+  .section .number {
+    font-size: 5em;
+  }
+  .section .content-fit .title {
+    font-size: 2em;
+  }
+  #description .content-fit {
+    flex-direction: column;
+    padding-right: 0;
+    align-items: flex-start;
+  }
+  #container3D {
+    position: absolute;
+  }
 }

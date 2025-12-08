@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,7 +11,11 @@
 <body>
     <header>
         <div class="content-fit">
-            <div class="logo">Di2</div>
+            <div class="logo devil">Di2</div>
+            <a href="{{ url_for('login_google') }}" class="google-btn">
+                <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google logo">
+                <span>Login with Google</span>
+            </a>
         </div>
     </header>
 
@@ -25,8 +30,9 @@
             <div class="number">01</div>
             <div class="des">
                 <div class="title">Find Bathrooms in NYC</div>
-                <p>Quickly locate public bathrooms near you in New York City. Filter by rating and distance, 
-               read reviews left by other users, and plan your visit with ease. Stay comfortable while exploring the city...</p>
+                <p>Quickly locate public bathrooms near you in New York City. Filter by rating and distance,
+                    read reviews left by other users, and plan your visit with ease. Stay comfortable while exploring
+                    the city...</p>
             </div>
         </div>
     </div>
@@ -36,24 +42,15 @@
             <div class="number">02</div>
             <div class="des">
                 <div class="title">WHY US?</div>
-                <p>Our app helps you find the nearest bathrooms in NYC with ease. 
-               See user ratings, distance from your location, and read real reviews to make the best choice. 
-               Perfect for tourists, commuters, or anyone on the go...</p>
+                <p>Our app helps you find the nearest bathrooms in NYC with ease.
+                    See user ratings, distance from your location, and read real reviews to make the best choice.
+                    Perfect for tourists, commuters, or anyone on the go...</p>
             </div>
         </div>
     </div>
 
-    <div class="section" id="login">
-        <div class="content-fit">
-            <a href="{{ url_for('login_google') }}" class="google-btn">
-                <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google logo">
-                <span>Login with Google</span>
-            </a>
-        </div>
-    </div>
-
-
     <div id="container3D"></div>
     <script type="module" src="{{ url_for('static', filename='app.js') }}"></script>
 </body>
+
 </html>
