@@ -83,6 +83,47 @@ const sidebar = L.control.sidebar({
     closeButton: true
 }).addTo(map);
 
+// show routing 
+let userLatLng = null; 
+let routingControl = null;
+map.locate({ setView: true, maxZoom: 16 });
+
+map.on('locationfound', function(e) {
+    userLatLng = e.latlng;
+
+    L.circleMarker(userLatLng, {
+        radius: 6,
+        color: 'blue',
+        fillColor: 'blue',
+        fillOpacity: 1
+    }).addTo(map);
+});
+
+function routeTo(lat, lon) {
+    if (!userLatLng) {
+        alert("User location not found yet!");
+        return;
+    }
+
+    // remove prev route
+    if (routingControl) {
+        map.removeControl(routingControl);
+    }
+
+    routingControl = L.Routing.control({
+        waypoints: [
+            L.latLng(userLatLng.lat, userLatLng.lng),
+            L.latLng(lat, lon)
+        ],
+        lineOptions: {
+            styles: [{ color: 'blue', opacity: 0.8, weight: 5 }]
+        },
+        addWaypoints: false,
+        draggableWaypoints: false,
+        routeWhileDragging: false,
+        show: false,
+    }).addTo(map);
+}
 
 // search bar filter nyc
 const nycViewbox = '-74.2591,40.9176,-73.7004,40.4774';
@@ -167,6 +208,35 @@ const toiletIcon = L.icon({
     iconAnchor: [16, 32],  
 });
 
+
+// own location
+map.locate({ setView: true, maxZoom: 16 });
+
+function onLocationFound(e) {
+    const latlng = e.latlng;
+
+    L.circleMarker(latlng, {
+        radius: 6,          
+        color: 'red',      
+        fillColor: 'red', 
+        fillOpacity: 1
+    }).addTo(map)
+}
+
+function onLocationError(e) {
+    console.warn("Geolocation error:", e.message);
+}
+
+map.on('locationfound', onLocationFound);
+map.on('locationerror', onLocationError);
+
+function onLocationError(e) {
+    console.warn("Geolocation error:", e.message);
+}
+
+map.on('locationfound', onLocationFound);
+map.on('locationerror', onLocationError);
+
 // fetch the address from lat/lon
 async function reverseGeocode(lat, lon) {
     const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`;
@@ -201,27 +271,28 @@ function fetchBathrooms() {
                 const id = el.osm_id; 
 
                 marker.on('click', async () => {
-                    currentBathroomId = id;
-                    if (sidebarTitle) {
-                        sidebarTitle.textContent = tags.name || 'Public Bathroom';
-                    }
-                    if (sidebarAddress) {
-                        // overpass else geocode
-                        const hasAddressTags = tags['addr:housenumber'] || tags['addr:street'] || tags['addr:city'];
-                        if (hasAddressTags) {
-                            sidebarAddress.innerHTML = formatAddress(tags, lat, lon);
-                        } else {
-                            sidebarAddress.innerHTML = "Loading address...";
-                            const address = await reverseGeocode(lat, lon);
-                            sidebarAddress.innerHTML = address;
-                        }
-                    }
-                    if (bathroomImage) {
-                        bathroomImage.src = "https://via.placeholder.com/260x160?text=No+Image";
-                    }
-                    renderComments();
-                    sidebar.open('info');
-                });
+    currentBathroomId = id;
+    if (sidebarTitle) sidebarTitle.textContent = tags.name || 'Public Bathroom';
+    
+    if (sidebarAddress) {
+        const hasAddressTags = tags['addr:housenumber'] || tags['addr:street'] || tags['addr:city'];
+        if (hasAddressTags) {
+            sidebarAddress.innerHTML = formatAddress(tags, lat, lon);
+        } else {
+            sidebarAddress.innerHTML = "Loading address...";
+            const address = await reverseGeocode(lat, lon);
+            sidebarAddress.innerHTML = address;
+        }
+    }
+    
+    if (bathroomImage) bathroomImage.src = "https://via.placeholder.com/260x160?text=No+Image";
+    renderComments();
+    sidebar.open('info');
+
+    // show route from user location
+    routeTo(lat, lon);
+});
+
                 markersLayer.addLayer(marker);
             });
         })
