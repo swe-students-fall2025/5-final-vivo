@@ -6,17 +6,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home Page</title>
 
-    <!-- Leaflet core CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
         integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
-
-    <!-- ✅ Leaflet Sidebar + icons -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet-sidebar-v2@3.2.0/css/leaflet-sidebar.min.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
-
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css"/>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='home.css')}}">
 </head>
@@ -37,7 +35,6 @@
     </div>
     {% endif %}
 
-    <!-- ✅ Leaflet sidebar container -->
     <div id="sidebar" class="leaflet-sidebar collapsed">
         <div class="leaflet-sidebar-tabs">
             <ul role="tablist">
@@ -69,13 +66,13 @@
 
                     <!-- Photo -->
                     <div>
-                        <h3 class="font-medium mb-2">Photo</h3>
-                        <img
-                            id="bathroom-image"
-                            src="https://via.placeholder.com/260x160?text=No+Image"
-                            alt="Bathroom photo"
-                            class="w-full h-40 object-cover rounded-md border border-gray-200"
-                        />
+                        <div class="swiper bathroom-swiper">
+                            <div class="swiper-wrapper">
+                            </div>
+                            <div class="swiper-pagination"></div>
+                            <div class="swiper-button-prev"></div>
+                            <div class="swiper-button-next"></div>
+                        </div>
                         <button
                             id="add-image-btn"
                             class="mt-2 w-full text-xs bg-blue-500 hover:bg-blue-600 text-white font-medium py-1.5 px-3 rounded transition-colors">
@@ -102,24 +99,28 @@
                             Post comment
                         </button>
                     </div>
+
+                    <!-- Directions -->
+                    <div class="mt-4">
+                        <h3 class="font-medium mb-2">Directions</h3>
+                        <ul id="directions-list" class="flex-1 overflow-y-auto text-xs space-y-1 list-decimal list-inside"></ul>
+                        <p id="directions-summary" class="mt-1 text-xs text-gray-600"></p>
+                    </div>
+
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- Map -->
     <div id="map"></div>
 
-    <!-- JS includes -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
         integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="">
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
     <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
     <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
-
-    <!-- ✅ Leaflet sidebar JS must be BEFORE home.js -->
     <script src="https://unpkg.com/leaflet-sidebar-v2@3.2.0/js/leaflet-sidebar.min.js"></script>
-
     <script src="{{ url_for('static', filename='home.js') }}"></script>
 </body>
 

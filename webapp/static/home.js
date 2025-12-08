@@ -1,26 +1,16 @@
 const sidebarTitle   = document.getElementById('bathroom-title');
 const sidebarAddress = document.getElementById('bathroom-address');
-const bathroomImage  = document.getElementById('bathroom-image');
 const addImageBtn    = document.getElementById('add-image-btn');
 const imageInput     = document.getElementById('image-input');
 const commentsList   = document.getElementById('comments-list');
 const commentInput   = document.getElementById('comment-input');
 const addCommentBtn  = document.getElementById('add-comment-btn');
+const directionsList = document.getElementById('directions-list');
+const directionsSummary = document.getElementById('directions-summary');
 
 let currentBathroomId = null;
 const commentsByBathroomId = {}; 
 
-// image upload preview
-if (addImageBtn && imageInput && bathroomImage) {
-    addImageBtn.addEventListener('click', () => imageInput.click());
-
-    imageInput.addEventListener('change', () => {
-        const file = imageInput.files[0];
-        if (!file) return;
-        const url = URL.createObjectURL(file);
-        bathroomImage.src = url;
-    });
-}
 
 function renderComments() {
     if (!commentsList || !currentBathroomId) return;
@@ -83,6 +73,161 @@ const sidebar = L.control.sidebar({
     closeButton: true
 }).addTo(map);
 
+
+let bathroomSwiper = new Swiper(".bathroom-swiper", {
+    loop: true,
+    navigation: {
+        nextEl: ".swiper-button-next",
+        prevEl: ".swiper-button-prev",
+    },
+    pagination: { el: ".swiper-pagination", clickable: true },
+});
+
+function showBathroomImages(imageUrls) {
+    const swiperWrapper = document.querySelector(".bathroom-swiper .swiper-wrapper");
+    swiperWrapper.innerHTML = "";
+
+    const images = imageUrls?.length ? imageUrls : ["/static/img/default.png"];
+    images.forEach(url => {
+        const slide = document.createElement("div");
+        slide.classList.add("swiper-slide");
+
+        const img = document.createElement("img");
+        img.src = url;
+        img.style.width = "100%";
+        img.style.height = "auto";
+        img.style.borderRadius = "8px";
+
+        slide.appendChild(img);
+        swiperWrapper.appendChild(slide);
+    });
+
+    bathroomSwiper.update(); 
+}
+if (addImageBtn && imageInput) {
+    addImageBtn.addEventListener('click', () => imageInput.click());
+
+    imageInput.addEventListener('change', () => {
+        const file = imageInput.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = new Image();
+            img.onload = function() {
+        
+                const maxWidth = 600;
+                const maxHeight = 400;
+                let width = img.width;
+                let height = img.height;
+                if (width > maxWidth) {
+                    height = (maxWidth / width) * height;
+                    width = maxWidth;
+                }
+                if (height > maxHeight) {
+                    width = (maxHeight / height) * width;
+                    height = maxHeight;
+                }
+
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height)
+                const resizedUrl = canvas.toDataURL('image/png'); 
+                // add
+                const swiperWrapper = document.querySelector(".bathroom-swiper .swiper-wrapper");
+
+                // remove default 
+                if (swiperWrapper.children.length === 1 && swiperWrapper.children[0].querySelector('img').src.includes('default.png')) {
+                    swiperWrapper.innerHTML = "";
+                }
+
+                const slide = document.createElement("div");
+                slide.classList.add("swiper-slide");
+
+                const newImg = document.createElement("img");
+                newImg.src = resizedUrl;
+                newImg.style.width = "100%";
+                newImg.style.height = "auto";
+                newImg.style.borderRadius = "8px";
+
+                slide.appendChild(newImg);
+                swiperWrapper.appendChild(slide);
+
+                bathroomSwiper.update();
+                bathroomSwiper.slideTo(swiperWrapper.children.length - 1);
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
+
+
+// show routing 
+let userLatLng = null; 
+let routingControl = null;
+map.locate({ setView: true, maxZoom: 16 });
+
+map.on('locationfound', function(e) {
+    userLatLng = e.latlng;
+
+    L.circleMarker(userLatLng, {
+        radius: 6,
+        color: 'blue',
+        fillColor: 'blue',
+        fillOpacity: 1
+    }).addTo(map);
+});
+
+function routeTo(lat, lon) {
+    if (!userLatLng) {
+        alert("User location not found yet!");
+        return;
+    }
+
+    // remove previous route if exists
+    if (routingControl) {
+        map.removeControl(routingControl);
+    }
+
+    routingControl = L.Routing.control({
+        waypoints: [
+            L.latLng(userLatLng.lat, userLatLng.lng),
+            L.latLng(lat, lon)
+        ],
+        lineOptions: {
+            styles: [{ color: 'blue', opacity: 0.8, weight: 5 }]
+        },
+        addWaypoints: false,
+        draggableWaypoints: false,
+        routeWhileDragging: false,
+        show: false,
+        createMarker: () => null, 
+        router: L.Routing.osrmv1({
+            serviceUrl: 'https://router.project-osrm.org/route/v1'
+        })
+    }).on('routesfound', function(e) {
+        const route = e.routes[0];
+
+        // show summary
+        const distanceKm = (route.summary.totalDistance / 1000).toFixed(1);
+        const durationMin = Math.round(route.summary.totalTime / 60);
+        directionsSummary.textContent = `Distance: ${distanceKm} km, Estimated time: ${durationMin} min`;
+
+        // instruction
+        if (directionsList) {
+            directionsList.innerHTML = '';
+            route.instructions.forEach(instr => {
+                const li = document.createElement('li');
+                li.innerHTML = instr.text;
+                directionsList.appendChild(li);
+            });
+        }
+    }).addTo(map);
+}
 
 // search bar filter nyc
 const nycViewbox = '-74.2591,40.9176,-73.7004,40.4774';
@@ -167,6 +312,33 @@ const toiletIcon = L.icon({
     iconAnchor: [16, 32],  
 });
 
+
+// own location
+function onLocationFound(e) {
+    const latlng = e.latlng;
+
+    L.circleMarker(latlng, {
+        radius: 6,          
+        color: 'red',      
+        fillColor: 'red', 
+        fillOpacity: 1
+    }).addTo(map)
+}
+
+function onLocationError(e) {
+    console.warn("Geolocation error:", e.message);
+}
+
+map.on('locationfound', onLocationFound);
+map.on('locationerror', onLocationError);
+
+function onLocationError(e) {
+    console.warn("Geolocation error:", e.message);
+}
+
+map.on('locationfound', onLocationFound);
+map.on('locationerror', onLocationError);
+
 // fetch the address from lat/lon
 async function reverseGeocode(lat, lon) {
     const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`;
@@ -201,27 +373,30 @@ function fetchBathrooms() {
                 const id = el.osm_id; 
 
                 marker.on('click', async () => {
-                    currentBathroomId = id;
-                    if (sidebarTitle) {
-                        sidebarTitle.textContent = tags.name || 'Public Bathroom';
+                currentBathroomId = id;
+                if (sidebarTitle) sidebarTitle.textContent = tags.name || 'Public Bathroom';
+                
+                if (sidebarAddress) {
+                    const hasAddressTags = tags['addr:housenumber'] || tags['addr:street'] || tags['addr:city'];
+                    if (hasAddressTags) {
+                        sidebarAddress.innerHTML = formatAddress(tags, lat, lon);
+                    } else {
+                        sidebarAddress.innerHTML = "Loading address...";
+                        const address = await reverseGeocode(lat, lon);
+                        sidebarAddress.innerHTML = address;
                     }
-                    if (sidebarAddress) {
-                        // overpass else geocode
-                        const hasAddressTags = tags['addr:housenumber'] || tags['addr:street'] || tags['addr:city'];
-                        if (hasAddressTags) {
-                            sidebarAddress.innerHTML = formatAddress(tags, lat, lon);
-                        } else {
-                            sidebarAddress.innerHTML = "Loading address...";
-                            const address = await reverseGeocode(lat, lon);
-                            sidebarAddress.innerHTML = address;
-                        }
-                    }
-                    if (bathroomImage) {
-                        bathroomImage.src = "https://via.placeholder.com/260x160?text=No+Image";
-                    }
-                    renderComments();
-                    sidebar.open('info');
-                });
+                }
+    
+                const imageUrls = [];
+                if (tags.image) imageUrls.push(tags.image);
+                if (tags.images && Array.isArray(tags.images)) imageUrls.push(...tags.images);
+
+                showBathroomImages(imageUrls);
+                renderComments();
+                sidebar.open('info');
+                routeTo(lat, lon);
+            });
+
                 markersLayer.addLayer(marker);
             });
         })
