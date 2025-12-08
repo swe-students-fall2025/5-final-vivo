@@ -130,6 +130,10 @@ def get_bathroom_detail(osm_id):
 
 @app.route("/api/bathrooms/<string:osm_id>/reviews", methods=["GET"])
 def get_bathroom_reviews(osm_id):
+    try:
+        osm_id = int(osm_id)
+    except ValueError:
+        return jsonify({"error": "Invalid osm_id"}), 400
     doc = bathrooms_collection.find_one({"osm_id": osm_id})
     if not doc:
         return jsonify({"error": "Bathroom not found"}), 404
@@ -140,9 +144,18 @@ def get_bathroom_reviews(osm_id):
 
 @app.route("/api/bathrooms/<string:osm_id>/reviews", methods=["POST"])
 def add_bathroom_review(osm_id):
+    try:
+        osm_id = int(osm_id)
+    except ValueError:
+        return jsonify({"error": "Invalid osm_id"}), 400
     doc = bathrooms_collection.find_one({"osm_id": osm_id})
     if not doc:
         return jsonify({"error": "Bathroom not found"}), 404
+    
+    user = session.get("user") or {}
+    user_email = user.get("email")
+    if not user_email:
+        return jsonify({"error": "User not logged in"}), 401
 
     data = request.get_json() or {}
     rating = data.get("rating")
@@ -157,7 +170,6 @@ def add_bathroom_review(osm_id):
     if rating < 0 or rating > 5:
         return jsonify({"error": "rating must be between 0 and 5"}), 400
 
-    user = session.get("user") or {}
     review = {
         "rating": rating,
         "comment": comment,
@@ -166,22 +178,24 @@ def add_bathroom_review(osm_id):
         "created_at": datetime.utcnow().isoformat() + "Z",
     }
 
-    old_avg = doc.get("average_rating")
-    old_count = doc.get("rating_count", 0) or 0
+    existing_reviews = doc.get("reviews", [])
+    new_reviews = [r for r in existing_reviews if r.get("user_email") != user_email]
+    new_reviews.append(review)
 
-    if old_avg is None or old_count == 0:
-        new_count = 1
-        new_avg = rating
-    else:
-        new_count = old_count + 1
-        new_avg = (old_avg * old_count + rating) / new_count
+    # Recalculate average and count
+    ratings = [r["rating"] for r in new_reviews]
+    new_avg = sum(ratings) / len(ratings)
+    new_count = len(new_reviews)
 
     bathrooms_collection.update_one(
         {"osm_id": osm_id},
         {
-            "$push": {"reviews": review},
-            "$set": {"average_rating": new_avg, "rating_count": new_count},
-        },
+            "$set": {
+                "reviews": new_reviews,
+                "average_rating": new_avg,
+                "rating_count": new_count
+            }
+        }
     )
 
     updated = bathrooms_collection.find_one({"osm_id": osm_id})
