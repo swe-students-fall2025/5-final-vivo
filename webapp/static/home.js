@@ -1,4 +1,3 @@
-// ===== Sidebar logic (DOM refs) =====
 const sidebarTitle   = document.getElementById('bathroom-title');
 const sidebarAddress = document.getElementById('bathroom-address');
 const bathroomImage  = document.getElementById('bathroom-image');
@@ -9,7 +8,7 @@ const commentInput   = document.getElementById('comment-input');
 const addCommentBtn  = document.getElementById('add-comment-btn');
 
 let currentBathroomId = null;
-const commentsByBathroomId = {}; // { id: [comment, ...] }
+const commentsByBathroomId = {}; 
 
 // image upload preview
 if (addImageBtn && imageInput && bathroomImage) {
@@ -75,17 +74,15 @@ function formatAddress(tags = {}, lat, lon) {
     return lines.join('<br>');
 }
 
-// ===== Map + Leaflet Sidebar =====
-
+// sidebar
 const map = L.map('map').setView([40.7128, -74.0060], 13);
-
-// init Leaflet Sidebar (connects to <div id="sidebar"> in index.html)
 const sidebar = L.control.sidebar({
     container: 'sidebar',
     position: 'right',
     autopan: true,
     closeButton: true
 }).addTo(map);
+
 
 // search bar filter nyc
 const nycViewbox = '-74.2591,40.9176,-73.7004,40.4774';
@@ -112,7 +109,42 @@ L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
 }).addTo(map);
 
-const markersLayer = L.markerClusterGroup();
+// chikawa shark cluster
+const markersLayer = L.markerClusterGroup({
+    iconCreateFunction: function(cluster) {
+        const count = cluster.getChildCount();
+        const container = document.createElement('div');
+        container.style.position = 'relative';
+        container.style.display = 'inline-block';
+        container.style.textAlign = 'center';
+
+        // add img
+        const img = document.createElement('img');
+        img.src = '/static/img/cluster.png';
+        img.style.width = '50px';
+        img.style.height = '50px';
+        container.appendChild(img);
+
+        // count
+        const span = document.createElement('span');
+        span.textContent = count;
+        span.style.position = 'absolute';
+        span.style.bottom = '-5px';
+        span.style.left = '50%';
+        span.style.transform = 'translateX(-50%)';
+        span.style.fontWeight = 'bold';
+        span.style.color = '#161b29ff';
+        span.style.fontFamily = 'sans-serif';
+        span.style.fontSize = '14px';
+        container.appendChild(span);
+
+        return L.divIcon({
+            html: container.outerHTML,
+            className: ""
+        });
+    }
+});
+
 map.addLayer(markersLayer);
 
 const overpassUrl = "https://overpass-api.de/api/interpreter";
@@ -127,48 +159,73 @@ const query = `
     out center;
 `;
 
+
+// chikawa toilet marker
+const toiletIcon = L.icon({
+    iconUrl: "/static/img/toilet.png",  
+    iconSize: [32, 32],    
+    iconAnchor: [16, 32],  
+});
+
+// fetch the address from lat/lon
+async function reverseGeocode(lat, lon) {
+    const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`;
+    try {
+        const res = await fetch(url);
+        const data = await res.json();
+        if (data && data.display_name) {
+            return data.display_name;
+        } else {
+            return `Lat: ${lat.toFixed(6)}, Lon: ${lon.toFixed(6)}`;
+        }
+    } catch (err) {
+        console.error("Reverse geocoding error:", err);
+        return `Lat: ${lat.toFixed(6)}, Lon: ${lon.toFixed(6)}`;
+    }
+}
+
 // Fetch bathrooms
 function fetchBathrooms() {
-    fetch(overpassUrl, {
-        method: "POST",
-        body: query
-    })
+    fetch("/api/bathrooms")
         .then(res => res.json())
         .then(data => {
             markersLayer.clearLayers();
 
-            data.elements.forEach(el => {
-                const lat = el.lat || (el.center && el.center.lat);
-                const lon = el.lon || (el.center && el.center.lon);
+            data.bathrooms.forEach(el => {
+                const lat = el.lat;
+                const lon = el.lon;
                 if (!lat || !lon) return;
 
-                const marker = L.marker([lat, lon]);
+                const marker = L.marker([lat, lon], { icon: toiletIcon });
                 const tags = el.tags || {};
-                const id = el.id;
+                const id = el.osm_id; 
 
-                marker.on('click', () => {
+                marker.on('click', async () => {
                     currentBathroomId = id;
-
                     if (sidebarTitle) {
                         sidebarTitle.textContent = tags.name || 'Public Bathroom';
                     }
                     if (sidebarAddress) {
-                        sidebarAddress.innerHTML = formatAddress(tags, lat, lon);
+                        // overpass else geocode
+                        const hasAddressTags = tags['addr:housenumber'] || tags['addr:street'] || tags['addr:city'];
+                        if (hasAddressTags) {
+                            sidebarAddress.innerHTML = formatAddress(tags, lat, lon);
+                        } else {
+                            sidebarAddress.innerHTML = "Loading address...";
+                            const address = await reverseGeocode(lat, lon);
+                            sidebarAddress.innerHTML = address;
+                        }
                     }
-
-                    // reset image to default when switching bathrooms
                     if (bathroomImage) {
                         bathroomImage.src = "https://via.placeholder.com/260x160?text=No+Image";
                     }
-
                     renderComments();
                     sidebar.open('info');
                 });
-
                 markersLayer.addLayer(marker);
             });
         })
-        .catch(err => console.error("Overpass API error:", err));
+        .catch(err => console.error("Error fetching bathrooms from MongoDB API:", err));
 }
 
 fetchBathrooms();
