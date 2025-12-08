@@ -9,34 +9,128 @@ const directionsList = document.getElementById('directions-list');
 const directionsSummary = document.getElementById('directions-summary');
 
 let currentBathroomId = null;
-const commentsByBathroomId = {}; 
-
-
-function renderComments() {
-    if (!commentsList || !currentBathroomId) return;
-
+function renderComments(reviews = []) {
+    if (!commentsList) return;
     commentsList.innerHTML = '';
-    const comments = commentsByBathroomId[currentBathroomId] || [];
-    comments.forEach(text => {
+
+    reviews.forEach(r => {
         const li = document.createElement('li');
-        li.textContent = text;
+        li.className = 'p-2 bg-gray-100 rounded shadow-sm';
+        li.innerHTML = `
+            <div class="flex justify-between items-center">
+                <span class="font-semibold text-sm">${r.user_name}</span>
+                <span class="text-yellow-500">${'★'.repeat(Math.round(r.rating))}${'☆'.repeat(5 - Math.round(r.rating))}</span>
+            </div>
+            <p class="text-xs mt-1">${r.comment}</p>
+        `;
         commentsList.appendChild(li);
     });
 }
 
-if (addCommentBtn && commentInput) {
-    addCommentBtn.addEventListener('click', () => {
-        const text = commentInput.value.trim();
-        if (!text || !currentBathroomId) return;
 
-        if (!commentsByBathroomId[currentBathroomId]) {
-            commentsByBathroomId[currentBathroomId] = [];
+// fetch comments for bathroom
+async function loadBathroomReviews(osm_id) {
+    try {
+        const res = await fetch(`/api/bathrooms/${osm_id}/reviews`);
+        const data = await res.json();
+        if (data.reviews) {
+            renderComments(data.reviews);
+
+            // use the average
+            const avg = data.average_rating ?? (data.reviews.reduce((sum, r) => sum + r.rating, 0) / (data.reviews.length || 1));
+            const count = data.rating_count ?? data.reviews.length;
+
+            renderAverageRating(avg, count);
+            const userEmail = window.currentUserEmail;
+            const myReview = data.reviews.find(r => r.user_email === userEmail);
+            if (myReview) {
+                selectedRating = myReview.rating;
+                highlightStars(selectedRating);
+                commentInput.value = myReview.comment;
+            } else {
+                selectedRating = null;
+                highlightStars(0);
+                commentInput.value = '';
+            }
+        } else {
+            renderAverageRating(0, 0);
         }
-        commentsByBathroomId[currentBathroomId].push(text);
-        commentInput.value = '';
-        renderComments();
-    });
+
+    } catch (err) {
+        console.error("Failed to load reviews:", err);
+    }
 }
+
+function renderAverageRating(avg = 0, count = 0) {
+    const starsContainer = document.getElementById("average-stars");
+    const countSpan = document.getElementById("rating-count");
+    const numberSpan = document.getElementById("average-number");
+    if (!starsContainer || !countSpan || !numberSpan) return;
+
+    starsContainer.innerHTML = "";
+    const fullStars = Math.floor(avg);
+    const halfStar = avg - fullStars >= 0.5 ? 1 : 0;
+
+    for (let i = 1; i <= 5; i++) {
+        const star = document.createElement("span");
+        if (i <= fullStars) star.textContent = "★";
+        else if (i === fullStars + 1 && halfStar) star.textContent = "⯨"; 
+        else star.textContent = "☆";
+        starsContainer.appendChild(star);
+    }
+
+    numberSpan.textContent = avg > 0 ? avg.toFixed(1) : "";
+    countSpan.textContent = count > 0 ? `(${count} review${count > 1 ? "s" : ""})` : "(No reviews yet)";
+}
+
+
+
+// post comments
+addCommentBtn.addEventListener('click', async () => {
+    const commentText = commentInput.value.trim();
+    if (!commentText || !currentBathroomId) return;
+    if (!selectedRating) {
+        alert("Please select a rating!");
+        return;
+    }
+
+    try {
+        const res = await fetch(`/api/bathrooms/${currentBathroomId}/reviews`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ comment: commentText, rating: selectedRating })
+        });
+
+        if (!res.ok) {
+            const errData = await res.json();
+            alert(`Error: ${errData.error}`);
+            return;
+        }
+
+        const updatedBathroom = await res.json();
+        renderComments(updatedBathroom.reviews);
+        renderAverageRating(
+            updatedBathroom.average_rating || 0,
+            updatedBathroom.rating_count || updatedBathroom.reviews.length
+        );
+
+        const myReview = updatedBathroom.reviews.find(r => r.user_email === window.currentUserEmail);
+        if (myReview) {
+            selectedRating = myReview.rating;
+            highlightStars(selectedRating);
+            commentInput.value = myReview.comment;
+        } else {
+            selectedRating = null;
+            highlightStars(0);
+            commentInput.value = '';
+        }
+
+    } catch (err) {
+        console.error("Failed to post review:", err);
+    }
+});
+
+
 
 // format address nicely from Overpass tags
 function formatAddress(tags = {}, lat, lon) {
@@ -312,6 +406,29 @@ const toiletIcon = L.icon({
     iconAnchor: [16, 32],  
 });
 
+// review star
+const stars = document.querySelectorAll("#star-rating .star");
+let selectedRating = null;
+
+stars.forEach(star => {
+    const val = parseInt(star.dataset.value);
+
+    star.addEventListener("mouseover", () => highlightStars(val));
+    star.addEventListener("mouseout", () => highlightStars(selectedRating));
+    star.addEventListener("click", () => {
+        selectedRating = val;
+        highlightStars(selectedRating);
+    });
+});
+
+function highlightStars(rating) {
+    stars.forEach(star => {
+        const val = parseInt(star.dataset.value);
+        star.textContent = val <= rating ? "★" : "☆";
+    });
+}
+
+
 
 // own location
 function onLocationFound(e) {
@@ -373,7 +490,7 @@ function fetchBathrooms() {
                 const id = el.osm_id; 
 
                 marker.on('click', async () => {
-                currentBathroomId = id;
+                currentBathroomId = parseInt(id);
                 if (sidebarTitle) sidebarTitle.textContent = tags.name || 'Public Bathroom';
                 
                 if (sidebarAddress) {
@@ -392,7 +509,7 @@ function fetchBathrooms() {
                 if (tags.images && Array.isArray(tags.images)) imageUrls.push(...tags.images);
 
                 showBathroomImages(imageUrls);
-                renderComments();
+                loadBathroomReviews(id);
                 sidebar.open('info');
                 routeTo(lat, lon);
             });
