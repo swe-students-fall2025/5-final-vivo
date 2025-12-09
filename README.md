@@ -3,7 +3,7 @@
 [![CI](https://github.com/swe-students-fall2025/5-final-vivo/actions/workflows/webapp-ci.yml/badge.svg)](https://github.com/swe-students-fall2025/5-final-vivo/actions/workflows/webapp-ci.yml)
 [![CD](https://github.com/swe-students-fall2025/5-final-vivo/actions/workflows/docker-cicd.yml/badge.svg)](https://github.com/swe-students-fall2025/5-final-vivo/actions/workflows/docker-cicd.yml)
 
-**Live Deployment:** [https://di2.onrender.com]
+**Live Deployment:** [Di2](https://di2.onrender.com)
 
 ## Introduction
 
