@@ -146,12 +146,12 @@ Configure these secrets in your GitHub repository settings:
 | `GOOGLE_CLIENT_ID`          | Google OAuth client ID           |
 | `GOOGLE_CLIENT_SECRET`      | Google OAuth client secret       |
 
-### Digital Ocean Deployment
+### Render Deployment
 
-1. Create a Digital Ocean App
-2. Connect your GitHub repository
-3. Configure environment variables
-4. Deploy from the main branch
+1. Create Render Web Service  
+2. Connect GitHub Repository
+3. Configure Environment Variables  
+4. Deploy from main branch
 
 ## Project Structure
 
