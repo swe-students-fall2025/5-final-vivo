@@ -1,0 +1,10 @@
+version: "3.9"
+
+services:
+  webapp:
+    build: ./webapp
+    container_name: toilet-finder-backend
+    ports:
+      - "5001:5000"
+    env_file:
+      - .env
