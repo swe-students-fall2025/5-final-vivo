@@ -3,7 +3,7 @@
 [![CI](https://github.com/swe-students-fall2025/5-final-vivo/actions/workflows/webapp-ci.yml/badge.svg)](https://github.com/swe-students-fall2025/5-final-vivo/actions/workflows/webapp-ci.yml)
 [![CD](https://github.com/swe-students-fall2025/5-final-vivo/actions/workflows/docker-cicd.yml/badge.svg)](https://github.com/swe-students-fall2025/5-final-vivo/actions/workflows/docker-cicd.yml)
 
-**Live Deployment:** [Di2](https://di2.onrender.com)
+**Live Deployment:** [https://di2.onrender.com](https://di2.onrender.com)
 
 ## Introduction
 
@@ -22,8 +22,8 @@ Built with Flask and MongoDB, Di2 provides a user-friendly interface for discove
 
 ## Group Members
 
-- [Maria Lee] ([https://github.com/MariaLuo826])
-- [Natalie Han] ([https://github.com/nateisnataliehan])
+- [Maria Lee] (https://github.com/MariaLuo826)
+- [Natalie Han] (https://github.com/nateisnataliehan)
 - [Teammate 3 Name] ([Teammate 3 GitHub Username])
 - [Teammate 4 Name] ([Teammate 4 GitHub Username])
 - [Teammate 5 Name] ([Teammate 5 GitHub Username])
