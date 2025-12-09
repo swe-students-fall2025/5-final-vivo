@@ -5,7 +5,7 @@ on:
     branches: [ main ]
 
 jobs:
-  docker:
+  docker-build-and-push:
     runs-on: ubuntu-latest
 
     steps:
@@ -21,10 +21,10 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and push Docker image
+      - name: Build and push backend image
         uses: docker/build-push-action@v6
         with:
-          context: ./webapp
+          context: .
           file: ./webapp/Dockerfile
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/toilet-finder-webapp:latest
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/toilet-finder-backend:latest
