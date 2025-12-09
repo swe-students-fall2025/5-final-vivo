@@ -1,145 +1,192 @@
-# NYC Public Bathroom Finder
+# Vivo - NYC Public Bathroom Finder
 
-A web application that helps users locate public bathrooms in New York City using real-time OpenStreetMap data. The system consists of a Flask web application, a Leaflet-based frontend that displays bathroom locations, and an integrated sidebar that shows bathroom details, images, and comments.
+[![CI](https://github.com/swe-students-fall2025/5-final-vivo/actions/workflows/webapp-ci.yml/badge.svg)](https://github.com/swe-students-fall2025/5-final-vivo/actions/workflows/webapp-ci.yml)
+[![CD](https://github.com/swe-students-fall2025/5-final-vivo/actions/workflows/docker-cicd.yml/badge.svg)](https://github.com/swe-students-fall2025/5-final-vivo/actions/workflows/docker-cicd.yml)
+
+**Live Deployment:** [Your Deployment URL Here]
+
+## Introduction
+
+**Di2** is a public bathroom finder and review platform for New York City. The application helps users locate public restrooms throughout NYC, view detailed information about each facility, and contribute reviews and ratings based on their experiences.
+
+Built with Flask and MongoDB, Di2 provides a user-friendly interface for discovering bathroom locations, reading community reviews, and sharing your own feedback. The platform uses real-time data from OpenStreetMap and allows users to authenticate via Google OAuth for a seamless experience.
 
 ## Features
 
-- **Real-Time Bathroom Retrieval**: Uses Overpass API to fetch all public bathroom locations in NYC based on OpenStreetMap data.
-- **Interactive Leaflet Map**: Includes marker clustering, NYC-bounded geocoding, and dynamic marker rendering.
-- **Bathroom Detail Sidebar**: View bathroom name, address, upload a photo (client-side preview), and add comments.
-- **Google OAuth Login**: Secure login using Google OAuth 2.0 with user profile display.
-- **Responsive UI**: Sidebar, map, and user elements adapt to desktop layouts.
+- **Search for Bathrooms**: Find public restrooms throughout New York City
+- **View Bathroom Details**: See comprehensive information about each bathroom facility
+- **Add Reviews**: Share your experience by writing reviews for bathrooms you've visited
+- **Rate Bathrooms**: Give star ratings (0-5) to help others find quality facilities
+- **Add New Bathrooms**: Contribute to the community by adding missing bathrooms to the database
+- **Google Login**: Secure authentication using your Google account
 
-## Team Members
+## Group Members
 
-- [Maria Lee](https://github.com/MariaLuo826)￼
+- [Maria Lee] ([https://github.com/MariaLuo826])
+- [Teammate 2 Name] ([Teammate 2 GitHub Username])
+- [Teammate 3 Name] ([Teammate 3 GitHub Username])
+- [Teammate 4 Name] ([Teammate 4 GitHub Username])
+- [Teammate 5 Name] ([Teammate 5 GitHub Username])
 
-## Architecture
+## Setup and Installation
 
-The system consists of three main components:
+### Prerequisites
 
-1. **Flask Web Application** (`web-app/`): Handles routing, Google OAuth login, rendering HTML templates, and serving static resources.
-2. **Leaflet Map Frontend** (`webapp/static/`): Renders an interactive NYC map, retrieves bathroom data, displays markers, and manages sidebar interactions.
-3. **Overpass API Integration**: Dynamically retrieves bathroom locations from OpenStreetMap using a custom Overpass query.
+- Python 3.8+
+- MongoDB Atlas account or local MongoDB instance
+- Google OAuth credentials (Google Cloud Console)
+- Docker and Docker Compose (optional)
 
-## Prerequisites
+### Local Development Setup
 
-- Python 3.10+
-- Git
-- Google Cloud OAuth Credentials (Client ID and Secret)
--Docker and Docker Compose installed
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/swe-students-fall2025/5-final-vivo.git
+   cd 5-final-vivo
+   ```
 
-## Quick Start
+2. **Create and activate a virtual environment:**
+   ```bash
+   python3 -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```
 
-### Using Local Python Environment (Recommended)
+3. **Install dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-1.	Clone the repository:
-    ```bash
-    git clone <repository-url>
-    cd 5-final-vivo
-    ```
+4. **Configure environment variables:**
+   ```bash
+   cp env.example .env
+   ```
+   Edit the `.env` file and replace the placeholder values with your actual credentials.
 
+5. **Import bathroom data:**
+   ```bash
+   python import_overpass.py
+   ```
+   This will fetch and populate NYC bathroom data from OpenStreetMap.
 
-2.	Install dependencies:
+6. **Run the application:**
+   ```bash
+   python app.py
+   ```
+   The application will be available at `http://localhost:5000`
 
-    pip install -r requirements.txt
+### Docker Setup
 
+To run the application using Docker Compose:
 
-3.	Create a .env file in the project root:
+1. **Run with Docker Compose:**
+   ```bash
+   docker-compose up --build
+   ```
+   The application will be available at `http://localhost:8000`
 
-    FLASK_SECRET_KEY=your-secret-key
-    GOOGLE_CLIENT_ID=your-google-client-id
-    GOOGLE_CLIENT_SECRET=your-google-client-secret
+## Google OAuth Setup
 
+1. Go to the [Google Cloud Console](https://console.cloud.google.com/)
+2. Create a new project or select an existing one
+3. Navigate to "APIs & Services" > "Credentials"
+4. Click "Create Credentials" > "OAuth 2.0 Client IDs"
+5. Configure the OAuth consent screen
+6. Add authorized redirect URIs:
+   - For local development: `http://localhost:5000/auth/callback`
+   - For production: `https://your-domain.com/auth/callback`
+7. Copy the Client ID and Client Secret to your `.env` file
 
-4.	Run the Flask application:
+## API Routes
 
-    python3 webapp/app.py
+### Authentication Routes
+- `GET /` - Home page (requires login)
+- `GET /login` - Login page
+- `GET /login/google` - Initiate Google OAuth flow
+- `GET /auth/callback` - OAuth callback endpoint
+- `GET /logout` - Logout user
 
+### Bathroom API Routes
+- `GET /api/bathrooms` - Get basic bathroom data (coordinates only)
+- `GET /api/bathrooms/full` - Get complete bathroom data with reviews
+- `GET /api/bathrooms/<osm_id>` - Get details for specific bathroom
+- `POST /api/bathrooms/add` - Add new bathroom
 
-5.	Open the web application:
+### Review API Routes
+- `GET /api/bathrooms/<osm_id>/reviews` - Get reviews for specific bathroom
+- `POST /api/bathrooms/<osm_id>/reviews` - Add a review to bathroom
 
-    http://127.0.0.1:5000
+## Deployment
 
+### CI/CD Pipeline
 
+The project uses GitHub Actions for continuous integration and deployment:
 
-## Overpass API Query Used
+1. **CI Workflow** (`webapp-ci.yml`):
+   - Runs on push to main branch
+   - Installs dependencies
+   - Runs tests and coverage checks
+   - Builds Docker image
 
-[out:json][timeout:25];
-area["name"="City of New York"]["boundary"="administrative"]["admin_level"="5"]->.nyc;
-(
-  node["amenity"="toilets"](area.nyc);
-  way["amenity"="toilets"](area.nyc);
-  relation["amenity"="toilets"](area.nyc);
-);
-out center;
+2. **CD Workflow** (`docker-cicd.yml`):
+   - Triggers after successful CI
+   - Pushes Docker image to Docker Hub
+   - Deploys to Digital Ocean
 
-## Environment Variables
+### Required GitHub Secrets
 
-FLASK_SECRET_KEY	Flask application secret key
-GOOGLE_CLIENT_ID	Google OAuth client ID
-GOOGLE_CLIENT_SECRET	Google OAuth client secret
+Configure these secrets in your GitHub repository settings:
 
-### Example .env File
+| Secret                      | Description                      |
+| --------------------------- | -------------------------------- |
+| `DOCKERHUB_USERNAME`        | Docker Hub username              |
+| `DOCKERHUB_TOKEN`           | Docker Hub personal access token |
+| `DIGITALOCEAN_ACCESS_TOKEN` | Digital Ocean API token          |
+| `MONGO_URI`                 | MongoDB connection string        |
+| `FLASK_SECRET_KEY`          | Flask application secret key     |
+| `GOOGLE_CLIENT_ID`          | Google OAuth client ID           |
+| `GOOGLE_CLIENT_SECRET`      | Google OAuth client secret       |
 
-FLASK_SECRET_KEY=mysecretkey123
-GOOGLE_CLIENT_ID=myclientid.apps.googleusercontent.com
-GOOGLE_CLIENT_SECRET=myclientsecret
+### Digital Ocean Deployment
 
-Notes:
-	•	.env is ignored by Git for security.
-	•	OAuth callback URL must match your Google Cloud configuration.
+1. Create a Digital Ocean App
+2. Connect your GitHub repository
+3. Configure environment variables
+4. Deploy from the main branch
 
 ## Project Structure
 
+```
 5-final-vivo/
-├── webapp/
-│   ├── app.py                # Flask backend
-│   ├── requirements.txt      # Dependencies
-│   ├── static/
-│   │   ├── home.js           # Map and sidebar logic
-│   │   └── home.css          # Styling
-│   └── templates/
-│       └── index.html        # Frontend template with Leaflet sidebar
-├── .env                      # Environment variables (ignored by Git)
-└── README.md
-
-## API Endpoints
-
-### Web Application
-
-- GET / – Main map interface
-- GET /login – Google OAuth login
-- GET /logout – Logout and clear session
-- GET /auth/callback – OAuth callback handler
-
-## Map and Sidebar Functionality
-
-### Map Features
-- NYC-centered Leaflet map
-- Marker clustering for performance
-- NYC-limited search (via Leaflet Control Geocoder)
-- Dynamic marker creation from Overpass API results
-
-### Sidebar Features
-- Displays name and address when clicking a bathroom marker
-- Supports client-side photo upload (preview only)
-- Per-bathroom comment system (stored in-memory during session)
-
-## Troubleshooting
-
-### Google OAuth Issues
-
-If login fails:
-1.	Verify your redirect URI in Google Cloud Console matches:
-    
-    http://127.0.0.1:5000/auth/callback
-
-
-2.	Ensure your .env contains valid client ID and secret.
-
-### Sidebar Not Working
-
-Ensure the following script is loaded before home.js:
-
-<script src="https://unpkg.com/leaflet-sidebar-v2@3.2.0/js/leaflet-sidebar.min.js"></script>
+├── .githooks/
+│   └── commit-msg
+├── .github/
+│   └── workflows/
+│       ├── webapp-ci.yml
+│       ├── docker-cicd.yml
+│       └── event-logger.yml
+├── img/                    # Image assets
+├── static/                 # Static files (CSS, JS)
+│   ├── app.js
+│   ├── home.css
+│   ├── home.js
+│   ├── script.js
+│   └── style.css
+├── templates/              # HTML templates
+│   ├── index.html
+│   └── login.html
+├── app.py                  # Main Flask application
+├── Dockerfile             # Docker configuration
+├── docker-compose.yml     # Docker Compose configuration
+├── env.example            # Environment variables template
+├── .env                   # Environment variables (ignored by git)
+├── .gitignore            # Git ignore rules
+├── import_overpass.py     # Data import script
+├── instructions.md        # Project requirements
+├── LICENSE               # License file
+├── pyproject.toml        # pytest configuration
+├── README.md             # This file
+├── requirements.txt      # Python dependencies
+├── Pipfile              # Pipenv configuration
+├── Pipfile.lock         # Pipenv lock file
+└── note.txt             # Project notes
+```
