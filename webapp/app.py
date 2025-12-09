@@ -109,21 +109,6 @@ def logout():
     return redirect(url_for("login"))
 
 
-@app.route("/api/bathrooms")
-def get_bathrooms():
-    bathrooms = []
-    for doc in bathrooms_collection.find():
-        bathrooms.append(
-            {
-                "osm_id": doc["osm_id"],
-                "lat": doc["lat"],
-                "lon": doc["lon"],
-                "tags": doc.get("tags", {}),
-            }
-        )
-    return jsonify({"bathrooms": bathrooms})
-
-
 def serialize_bathroom(doc):
     if not doc:
         return {}
@@ -248,6 +233,139 @@ def add_bathroom_review(osm_id):
 
     updated = bathrooms_collection.find_one({"osm_id": osm_id})
     return jsonify(serialize_bathroom(updated)), 201
+
+
+@app.route("/api/bathrooms", methods=["GET"])
+def get_bathrooms():
+    min_lat = request.args.get("min_lat", type=float)
+    max_lat = request.args.get("max_lat", type=float)
+    min_lon = request.args.get("min_lon", type=float)
+    max_lon = request.args.get("max_lon", type=float)
+
+    keyword = request.args.get("q", type=str)
+    sort_param = request.args.get("sort", type=str)
+    limit = request.args.get("limit", default=100, type=int)
+
+    query: dict = {}
+
+    if None not in (min_lat, max_lat, min_lon, max_lon):
+        query["lat"] = {"$gte": min_lat, "$lte": max_lat}
+        query["lon"] = {"$gte": min_lon, "$lte": max_lon}
+
+    if keyword:
+        query["tags.name"] = {"$regex": keyword, "$options": "i"}
+
+    sort_spec = None
+    if sort_param == "rating":
+        sort_spec = [("average_rating", -1)]
+    elif sort_param == "reviews":
+        sort_spec = [("rating_count", -1)]
+    elif sort_param == "name":
+        sort_spec = [("tags.name", 1)]
+
+    cursor = bathrooms_collection.find(query)
+
+    if sort_spec:
+        cursor = cursor.sort(sort_spec)
+
+    if limit and limit > 0:
+        cursor = cursor.limit(limit)
+
+    docs = list(cursor)
+
+    bathrooms = []
+    for doc in docs:
+        bathrooms.append(
+            {
+                "osm_id": doc.get("osm_id"),
+                "lat": doc.get("lat"),
+                "lon": doc.get("lon"),
+                "tags": doc.get("tags", {}),
+                "average_rating": doc.get("average_rating"),
+                "rating_count": doc.get("rating_count", 0),
+            }
+        )
+
+    return jsonify({"bathrooms": bathrooms})
+
+
+@app.route("/api/my-reviews", methods=["GET"])
+def get_my_reviews():
+    """Return all reviews made by the currently logged-in user."""
+    user = session.get("user") or {}
+    user_email = user.get("email")
+    if not user_email:
+        return jsonify({"error": "User not logged in"}), 401
+
+    cursor = bathrooms_collection.find(
+        {"reviews.user_email": user_email}
+    )
+
+    results = []
+    for doc in cursor:
+        osm_id = doc.get("osm_id")
+        tags = doc.get("tags", {})
+        bathroom_name = tags.get("name") or f"Bathroom {osm_id}"
+
+        for review in doc.get("reviews", []):
+            if review.get("user_email") == user_email:
+                results.append(
+                    {
+                        "osm_id": osm_id,
+                        "bathroom_name": bathroom_name,
+                        "rating": review.get("rating"),
+                        "comment": review.get("comment"),
+                        "created_at": review.get("created_at"),
+                    }
+                )
+
+    return jsonify({"reviews": results})
+
+
+@app.route("/api/bathrooms/<string:osm_id>/reviews", methods=["DELETE"])
+def delete_bathroom_review(osm_id):
+    try:
+        osm_id = int(osm_id)
+    except ValueError:
+        return jsonify({"error": "Invalid osm_id"}), 400
+
+    doc = bathrooms_collection.find_one({"osm_id": osm_id})
+    if not doc:
+        return jsonify({"error": "Bathroom not found"}), 404
+
+    user = session.get("user") or {}
+    user_email = user.get("email")
+    if not user_email:
+        return jsonify({"error": "User not logged in"}), 401
+
+    existing_reviews = doc.get("reviews", [])
+
+    remaining_reviews = [r for r in existing_reviews if r.get("user_email") != user_email]
+
+    if len(remaining_reviews) == len(existing_reviews):
+        return jsonify({"message": "No review from this user to delete."}), 200
+
+    if remaining_reviews:
+        ratings = [r["rating"] for r in remaining_reviews]
+        new_avg = sum(ratings) / len(ratings)
+        new_count = len(remaining_reviews)
+    else:
+        new_avg = None
+        new_count = 0
+
+    bathrooms_collection.update_one(
+        {"osm_id": osm_id},
+        {
+            "$set": {
+                "reviews": remaining_reviews,
+                "average_rating": new_avg,
+                "rating_count": new_count,
+            }
+        },
+    )
+
+    updated = bathrooms_collection.find_one({"osm_id": osm_id})
+    return jsonify(serialize_bathroom(updated)), 200
 
 
 if __name__ == "__main__":
