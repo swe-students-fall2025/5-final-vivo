@@ -164,29 +164,39 @@ Configure these secrets in your GitHub repository settings:
 │       ├── webapp-ci.yml
 │       ├── docker-cicd.yml
 │       └── event-logger.yml
-├── img/                    # Image assets
-├── static/                 # Static files (CSS, JS)
-│   ├── app.js
-│   ├── home.css
-│   ├── home.js
-│   ├── script.js
-│   └── style.css
-├── templates/              # HTML templates
-│   ├── index.html
-│   └── login.html
-├── app.py                  # Main Flask application
-├── Dockerfile             # Docker configuration
+├── webapp/                        # Main Flask backend application
+│   ├── app.py                     # Flask entry point
+│   ├── Dockerfile                 # Docker configuration
+│   ├── requirements.txt           # Flask backend dependencies
+│   ├── static/                    # Frontend static assets
+│   │   ├── app.js
+│   │   ├── home.css
+│   │   ├── home.js
+│   │   ├── img/
+│   │   │   ├── bg.png
+│   │   │   ├── cluster.png
+│   │   │   ├── default.png
+│   │   │   └── toilet.png
+│   │   ├── plastic_toilet_cabin.glb
+│   │   ├── script.js
+│   │   └── style.css
+│   └── templates/                 # HTML templates
+│       ├── index.html
+│       └── login.html
+├── tests/                         # Backend unit tests
+│   ├── __init__.py
+│   └── test_backend.py
 ├── docker-compose.yml     # Docker Compose configuration
 ├── env.example            # Environment variables template
-├── .env                   # Environment variables (ignored by git)
 ├── .gitignore            # Git ignore rules
 ├── import_overpass.py     # Data import script
-├── instructions.md        # Project requirements
-├── LICENSE               # License file
+├── instructions.md       
+├── LICENSE       
 ├── pyproject.toml        # pytest configuration
 ├── README.md             # This file
 ├── requirements.txt      # Python dependencies
-├── Pipfile              # Pipenv configuration
-├── Pipfile.lock         # Pipenv lock file
-└── note.txt             # Project notes
+├── Pipfile       
+├── Pipfile.lock     
+├── pytest.ini           # Pytest settings
+└── note.txt    
 ```
