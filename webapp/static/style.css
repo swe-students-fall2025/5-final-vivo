@@ -197,4 +197,8 @@ header .content-fit {
   #container3D {
     position: absolute;
   }
+
+  .content-fit-reviews {
+    min-height: unset !important; 
+}
 }
