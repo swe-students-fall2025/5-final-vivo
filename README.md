@@ -86,7 +86,7 @@ To run the application using Docker Compose:
    ```bash
    docker-compose up --build
    ```
-   The application will be available at `http://localhost:8000`
+   The application will be available at `http://localhost:5001`
 
 ## Google OAuth Setup
 
