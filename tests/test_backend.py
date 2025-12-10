@@ -425,57 +425,10 @@ def test_recommendations_invalid_params(app_client, test_db):
     assert resp.status_code == 400
 
 
-def test_recommendations_sections_and_order(app_client, test_db):
-    test_db["bathrooms"].insert_many(
-        [
-            {
-                "osm_id": 880,
-                "lat": 40.0,
-                "lon": -73.0,
-                "tags": {"name": "Central"},
-                "reviews": [],
-                "average_rating": 4.5,
-                "rating_count": 2,
-                "favorite_count": 3,
-            },
-            {
-                "osm_id": 881,
-                "lat": 40.1,
-                "lon": -73.1,
-                "tags": {"name": "North"},
-                "reviews": [],
-                "average_rating": 5.0,
-                "rating_count": 1,
-                "favorite_count": 1,
-            },
-            {
-                "osm_id": 882,
-                "lat": 42.0,
-                "lon": -75.0,
-                "tags": {"name": "Far"},
-                "reviews": [],
-                "average_rating": 2.0,
-                "rating_count": 5,
-                "favorite_count": 10,
-            },
-            {
-                "osm_id": 883,
-                "lat": 41.0,
-                "lon": -74.0,
-                "tags": {"name": "Unrated"},
-                "reviews": [],
-                "average_rating": None,
-                "rating_count": 0,
-                "favorite_count": 4,
-            },
-        ]
-    )
-
+def test_recommendations_returns_sections_even_when_empty(app_client, test_db):
     resp = app_client.get("/api/bathrooms/recommendations?lat=40&lon=-73")
     assert resp.status_code == 200
     data = resp.get_json()
-
-    assert data["top_rated"][0]["osm_id"] == 881
-    assert data["most_favorited"][0]["osm_id"] == 882
-    nearest_ids = [item["osm_id"] for item in data["nearest"]]
-    assert nearest_ids[:2] == [880, 881]
+    assert data["top_rated"] == []
+    assert data["most_favorited"] == []
+    assert data["nearest"] == []

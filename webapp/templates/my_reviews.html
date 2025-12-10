@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Reviews</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-50 min-h-screen">
+    <div class="max-w-3xl mx-auto p-6">
+        <div class="flex items-center justify-between mb-6">
+            <div>
+                <p class="text-sm text-gray-500">Signed in as</p>
+                <p class="text-lg font-semibold text-gray-800">{{ user.name }}</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <a href="{{ url_for('main.index') }}"
+                    class="text-sm text-blue-600 hover:text-blue-800 font-medium underline">Back to map</a>
+                <a href="{{ url_for('auth.logout') }}"
+                    class="text-sm text-red-600 hover:text-red-700 font-medium underline">Logout</a>
+            </div>
+        </div>
+
+        <div class="bg-white shadow rounded-lg border border-gray-200">
+            <div class="px-5 py-4 border-b border-gray-100">
+                <h1 class="text-xl font-bold text-gray-800">My Bathroom Reviews</h1>
+                <p class="text-sm text-gray-500">All comments and ratings you've left.</p>
+            </div>
+
+            {% if reviews %}
+            <ul class="divide-y divide-gray-100">
+                {% for review in reviews %}
+                <li class="p-5">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-base font-semibold text-gray-900">{{ review.bathroom_name }}</p>
+                            {% if review.location_label %}
+                            <p class="text-xs text-gray-500">Location: {{ review.location_label }}</p>
+                            {% endif %}
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-yellow-500 font-semibold">{{ review.rating }}/5</span>
+                        </div>
+                    </div>
+                    <p class="text-sm text-gray-700 mt-2">{{ review.comment }}</p>
+                    {% if review.created_at %}
+                    <p class="text-xs text-gray-400 mt-1">Left on {{ review.created_at }}</p>
+                    {% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <div class="p-5 text-sm text-gray-600">
+                You haven't left any reviews yet. Go explore and share your thoughts!
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+
+</html>
