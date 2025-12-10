@@ -27,8 +27,9 @@ def test_db():
 
 @pytest.fixture
 def app_client(test_db, monkeypatch):
-    monkeypatch.setattr(app_module, "bathrooms_collection", test_db["bathrooms"])
-    monkeypatch.setattr(app_module, "users_collection", test_db["users"])
+    monkeypatch.setattr(app_module.api, "bathrooms_collection", test_db["bathrooms"])
+    monkeypatch.setattr(app_module.api, "users_collection", test_db["users"])
+    monkeypatch.setattr(app_module.auth, "users_collection", test_db["users"])
     app_module.app.testing = True
     with app_module.app.test_client() as client:
         yield client
@@ -71,23 +72,28 @@ def test_add_bathroom_missing_field(app_client, test_db):
     assert resp.status_code == 400
 
 
-def test_get_bathroom_detail_found(app_client, test_db):
+def test_get_bathroom_detail_serializes_fields(app_client, test_db):
     test_db["bathrooms"].insert_one(
         {
-            "osm_id": "123",
+            "osm_id": 123,
             "lat": 40.1,
             "lon": -73.9,
             "tags": {"name": "Detail Bathroom"},
-            "reviews": [],
-            "average_rating": None,
-            "rating_count": 0,
+            "reviews": [{"rating": 4, "comment": "nice"}],
+            "images": ["img1"],
+            "average_rating": 4.0,
+            "rating_count": 1,
         }
     )
     resp = app_client.get("/api/bathrooms/123")
     assert resp.status_code == 200
     data = resp.get_json()
-    assert data["osm_id"] == "123"
+    assert data["osm_id"] == 123
     assert data["tags"]["name"] == "Detail Bathroom"
+    assert data["reviews"][0]["comment"] == "nice"
+    assert data["images"] == ["img1"]
+    assert data["average_rating"] == 4.0
+    assert data["rating_count"] == 1
 
 
 def test_get_bathroom_detail_not_found(app_client, test_db):
@@ -308,3 +314,168 @@ def test_get_bathrooms_with_filters_and_sort(app_client, test_db):
     data = resp.get_json()
     assert "bathrooms" in data
     assert len(data["bathrooms"]) == 1
+
+
+def test_add_review_invalid_rating(app_client, test_db):
+    test_db["bathrooms"].insert_one(
+        {
+            "osm_id": 850,
+            "lat": 40.0,
+            "lon": -73.0,
+            "tags": {},
+            "reviews": [],
+            "average_rating": None,
+            "rating_count": 0,
+        }
+    )
+    login(app_client, email="rating@nyu.edu", name="Rating User")
+
+    resp = app_client.post(
+        "/api/bathrooms/850/reviews",
+        json={"rating": 6, "comment": "too high"},
+    )
+    assert resp.status_code == 400
+
+    resp = app_client.post(
+        "/api/bathrooms/850/reviews",
+        json={"rating": "bad-number"},
+    )
+    assert resp.status_code == 400
+
+    doc = test_db["bathrooms"].find_one({"osm_id": 850})
+    assert doc["reviews"] == []
+    assert doc["rating_count"] == 0
+
+
+def test_add_bathroom_image_flow(app_client, test_db):
+    test_db["bathrooms"].insert_one(
+        {
+            "osm_id": 860,
+            "lat": 0,
+            "lon": 0,
+            "tags": {},
+            "reviews": [],
+            "images": [],
+            "average_rating": None,
+            "rating_count": 0,
+        }
+    )
+
+    resp = app_client.post(
+        "/api/bathrooms/860/images", json={"image": "data:..."}
+    )
+    assert resp.status_code == 401
+
+    login(app_client, email="img@nyu.edu", name="Img User")
+    resp = app_client.post(
+        "/api/bathrooms/860/images", json={"image": "data:image/png;base64,abc"}
+    )
+    assert resp.status_code == 201
+    data = resp.get_json()
+    assert "images" in data
+    assert len(data["images"]) == 1
+    assert data["images"][0] == "data:image/png;base64,abc"
+
+    doc = test_db["bathrooms"].find_one({"osm_id": 860})
+    assert doc["images"] == ["data:image/png;base64,abc"]
+
+
+def test_favorites_add_and_remove(app_client, test_db):
+    test_db["bathrooms"].insert_one(
+        {
+            "osm_id": 870,
+            "lat": 0,
+            "lon": 0,
+            "tags": {"name": "Fav Bathroom"},
+            "reviews": [],
+            "average_rating": None,
+            "rating_count": 0,
+            "favorite_count": 0,
+        }
+    )
+    test_db["users"].insert_one(
+        {"email": "fav@nyu.edu", "name": "Fav User", "favorites": []}
+    )
+    login(app_client, email="fav@nyu.edu", name="Fav User")
+
+    resp = app_client.post("/api/users/favorites/870")
+    assert resp.status_code == 200
+    resp = app_client.post("/api/users/favorites/870")
+    assert resp.status_code == 200
+
+    user_doc = test_db["users"].find_one({"email": "fav@nyu.edu"})
+    assert user_doc["favorites"] == [870]
+    bathroom_doc = test_db["bathrooms"].find_one({"osm_id": 870})
+    assert bathroom_doc.get("favorite_count") == 1
+
+    resp = app_client.get("/api/users/favorites")
+    assert resp.status_code == 200
+    assert resp.get_json()["favorites"] == [870]
+
+    resp = app_client.delete("/api/users/favorites/870")
+    assert resp.status_code == 200
+    user_doc = test_db["users"].find_one({"email": "fav@nyu.edu"})
+    assert user_doc["favorites"] == []
+    bathroom_doc = test_db["bathrooms"].find_one({"osm_id": 870})
+    assert bathroom_doc.get("favorite_count") == 0
+
+
+def test_recommendations_invalid_params(app_client, test_db):
+    resp = app_client.get("/api/bathrooms/recommendations?lat=abc&lon=def")
+    assert resp.status_code == 400
+
+
+def test_recommendations_sections_and_order(app_client, test_db):
+    test_db["bathrooms"].insert_many(
+        [
+            {
+                "osm_id": 880,
+                "lat": 40.0,
+                "lon": -73.0,
+                "tags": {"name": "Central"},
+                "reviews": [],
+                "average_rating": 4.5,
+                "rating_count": 2,
+                "favorite_count": 3,
+            },
+            {
+                "osm_id": 881,
+                "lat": 40.1,
+                "lon": -73.1,
+                "tags": {"name": "North"},
+                "reviews": [],
+                "average_rating": 5.0,
+                "rating_count": 1,
+                "favorite_count": 1,
+            },
+            {
+                "osm_id": 882,
+                "lat": 42.0,
+                "lon": -75.0,
+                "tags": {"name": "Far"},
+                "reviews": [],
+                "average_rating": 2.0,
+                "rating_count": 5,
+                "favorite_count": 10,
+            },
+            {
+                "osm_id": 883,
+                "lat": 41.0,
+                "lon": -74.0,
+                "tags": {"name": "Unrated"},
+                "reviews": [],
+                "average_rating": None,
+                "rating_count": 0,
+                "favorite_count": 4,
+            },
+        ]
+    )
+
+    resp = app_client.get("/api/bathrooms/recommendations?lat=40&lon=-73")
+    assert resp.status_code == 200
+    data = resp.get_json()
+
+    assert data["top_rated"][0]["osm_id"] == 881
+    assert data["most_favorited"][0]["osm_id"] == 882
+    nearest_ids = [item["osm_id"] for item in data["nearest"]]
+    assert nearest_ids[:2] == [880, 881]

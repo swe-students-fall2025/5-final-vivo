@@ -1,7 +1,7 @@
 import os
 from flask import Flask
-from extensions import oauth
-from routes import auth, api, main
+from webapp.extensions import oauth
+from webapp.routes import auth, api, main
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "dev_key")

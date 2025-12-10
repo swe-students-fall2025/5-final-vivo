@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request, session
-from db import bathrooms_collection, users_collection
 from datetime import datetime
+from webapp.db import bathrooms_collection, users_collection
 
 bp = Blueprint("api", __name__, url_prefix="/api")
 
