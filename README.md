@@ -159,45 +159,41 @@ Configure these secrets in your GitHub repository settings:
 ```
 5-final-vivo/
 ├── .githooks/
-│   └── commit-msg
 ├── .github/
 │   └── workflows/
-│       ├── webapp-ci.yml
-│       ├── docker-cicd.yml
-│       └── event-logger.yml
-├── webapp/                        # Main Flask backend application
-│   ├── app.py                     # Flask entry point
-│   ├── Dockerfile                 # Docker configuration
-│   ├── requirements.txt           # Flask backend dependencies
-│   ├── static/                    # Frontend static assets
-│   │   ├── app.js
-│   │   ├── home.css
-│   │   ├── home.js
-│   │   ├── img/
-│   │   │   ├── bg.png
-│   │   │   ├── cluster.png
-│   │   │   ├── default.png
-│   │   │   └── toilet.png
-│   │   ├── plastic_toilet_cabin.glb
-│   │   ├── script.js
-│   │   └── style.css
-│   └── templates/                 # HTML templates
-│       ├── index.html
-│       └── login.html
 ├── tests/                         # Backend unit tests
 │   ├── __init__.py
 │   └── test_backend.py
-├── docker-compose.yml     # Docker Compose configuration
-├── env.example            # Environment variables template
-├── .gitignore            # Git ignore rules
-├── import_overpass.py     # Data import script
-├── instructions.md       
-├── LICENSE       
-├── pyproject.toml        # pytest configuration
-├── README.md             # This file
-├── requirements.txt      # Python dependencies
-├── Pipfile       
-├── Pipfile.lock     
-├── pytest.ini           # Pytest settings
-└── note.txt    
+├── webapp/                        # Main Flask backend application
+│   ├── routes/                    # Route blueprints
+│   │   ├── __init__.py
+│   │   ├── api.py                 # API endpoints
+│   │   ├── auth.py                # Authentication routes
+│   │   └── main.py                # Main application routes
+│   ├── static/                    # Frontend static assets
+│   │   ├── img/
+│   │   ├── app.js
+│   │   ├── home.css
+│   │   ├── home.js
+│   │   ├── plastic_toilet_cabin.glb
+│   │   ├── script.js
+│   │   └── style.css
+│   ├── templates/                 # HTML templates
+│   │   ├── index.html
+│   │   └── login.html
+│   ├── app.py                     # Flask entry point
+│   ├── db.py                      # Database connection
+│   ├── extensions.py              # Flask extensions
+│   ├── Dockerfile                 # Docker configuration
+│   └── requirements.txt           # Flask backend dependencies
+├── .gitignore
+├── docker-compose.yml             # Docker Compose configuration
+├── env.example                    # Environment variables template
+├── import_overpass.py             # Data import script
+├── instructions.md
+├── LICENSE
+├── pyproject.toml                 # pytest configuration
+├── pytest.ini                     # Pytest settings
+├── README.md                      # This file
+└── update_addresses.py            # Address update script
 ```

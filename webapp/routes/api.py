@@ -322,9 +322,15 @@ def add_favorite(osm_id):
     if not user:
         return jsonify({"error": "User not logged in"}), 401
 
-    users_collection.update_one(
-        {"email": user["email"]}, {"$addToSet": {"favorites": osm_id}}
-    )
+    # Check if already favorited to avoid double counting
+    user_doc = users_collection.find_one({"email": user["email"], "favorites": osm_id})
+    if not user_doc:
+        users_collection.update_one(
+            {"email": user["email"]}, {"$addToSet": {"favorites": osm_id}}
+        )
+        bathrooms_collection.update_one(
+            {"osm_id": osm_id}, {"$inc": {"favorite_count": 1}}
+        )
 
     return jsonify({"message": "Added to favorites", "osm_id": osm_id}), 200
 
@@ -340,8 +346,77 @@ def remove_favorite(osm_id):
     if not user:
         return jsonify({"error": "User not logged in"}), 401
 
-    users_collection.update_one(
-        {"email": user["email"]}, {"$pull": {"favorites": osm_id}}
-    )
+    # Check if favorited
+    user_doc = users_collection.find_one({"email": user["email"], "favorites": osm_id})
+    if user_doc:
+        users_collection.update_one(
+            {"email": user["email"]}, {"$pull": {"favorites": osm_id}}
+        )
+        bathrooms_collection.update_one(
+            {"osm_id": osm_id}, {"$inc": {"favorite_count": -1}}
+        )
 
     return jsonify({"message": "Removed from favorites", "osm_id": osm_id}), 200
+
+
+@bp.route("/bathrooms/recommendations", methods=["GET"])
+def get_recommendations():
+    try:
+        lat = float(request.args.get("lat"))
+        lon = float(request.args.get("lon"))
+    except (TypeError, ValueError):
+        return jsonify({"error": "Invalid lat/lon"}), 400
+
+    # Top Rated (highest average_rating, min 1 review)
+    top_rated_cursor = (
+        bathrooms_collection.find({"average_rating": {"$ne": None}})
+        .sort("average_rating", -1)
+        .limit(5)
+    )
+    top_rated = [serialize_bathroom(doc) for doc in top_rated_cursor]
+
+    # Most Favorited (highest favorite_count)
+    most_favorited_cursor = (
+        bathrooms_collection.find({"favorite_count": {"$gt": 0}})
+        .sort("favorite_count", -1)
+        .limit(5)
+    )
+    most_favorited = [serialize_bathroom(doc) for doc in most_favorited_cursor]
+
+    all_bathrooms = list(
+        bathrooms_collection.find(
+            {},
+            {
+                "osm_id": 1,
+                "lat": 1,
+                "lon": 1,
+                "tags": 1,
+                "average_rating": 1,
+                "rating_count": 1,
+            },
+        )
+    )
+
+    for b in all_bathrooms:
+        # Simple squared euclidean distance is enough for sorting
+        b["dist_sq"] = (b["lat"] - lat) ** 2 + (b["lon"] - lon) ** 2
+
+    all_bathrooms.sort(key=lambda x: x["dist_sq"])
+    nearest_docs = all_bathrooms[:5]
+
+    nearest = []
+    for doc in nearest_docs:
+        nearest.append(
+            {
+                "osm_id": doc.get("osm_id"),
+                "lat": doc.get("lat"),
+                "lon": doc.get("lon"),
+                "tags": doc.get("tags", {}),
+                "average_rating": doc.get("average_rating"),
+                "rating_count": doc.get("rating_count", 0),
+            }
+        )
+
+    return jsonify(
+        {"top_rated": top_rated, "most_favorited": most_favorited, "nearest": nearest}
+    )

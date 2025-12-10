@@ -625,3 +625,152 @@ function fetchBathrooms() {
 }
 
 fetchBathrooms();
+
+// --- Recommendations Logic ---
+
+const listFavorites = document.getElementById("list-favorites");
+const listTopRated = document.getElementById("list-top-rated");
+const listMostPopular = document.getElementById("list-most-popular");
+const listNearest = document.getElementById("list-nearest");
+
+function createBathroomListItem(b) {
+  const li = document.createElement("li");
+  li.className =
+    "p-2 bg-gray-50 hover:bg-gray-100 rounded cursor-pointer border border-gray-200 transition-colors";
+  const name = b.tags.name || `Bathroom #${b.osm_id}`;
+  const rating = b.average_rating ? b.average_rating.toFixed(1) : "N/A";
+
+  // Check if we have address tags
+  let addressText = "Address loading...";
+  const hasAddressTags =
+    b.tags["addr:housenumber"] || b.tags["addr:street"] || b.tags["addr:city"];
+
+  if (hasAddressTags) {
+    // Construct address from tags
+    const parts = [];
+    if (b.tags["addr:housenumber"]) parts.push(b.tags["addr:housenumber"]);
+    if (b.tags["addr:street"]) parts.push(b.tags["addr:street"]);
+    if (b.tags["addr:city"]) parts.push(b.tags["addr:city"]);
+    addressText = parts.join(" ");
+  }
+
+  li.innerHTML = `
+    <div class="flex justify-between items-center">
+      <span class="font-medium text-gray-800 truncate w-3/4">${name}</span>
+      <span class="text-xs font-bold text-yellow-600">★ ${rating}</span>
+    </div>
+    <div class="text-xs text-gray-500 mt-1 truncate address-placeholder">
+       ${addressText}
+    </div>
+  `;
+
+  // If no address tags, fetch reverse geocode
+  if (!hasAddressTags) {
+    reverseGeocode(b.lat, b.lon).then((addr) => {
+      const addrEl = li.querySelector(".address-placeholder");
+      if (addrEl) addrEl.textContent = addr;
+    });
+  }
+
+  li.addEventListener("click", async () => {
+    // Center map and open details
+    map.setView([b.lat, b.lon], 18);
+    currentBathroomId = b.osm_id;
+
+    // Simulate marker click logic partially
+    if (sidebarTitle) sidebarTitle.textContent = name;
+    if (sidebarAddress) {
+      if (hasAddressTags) {
+        sidebarAddress.innerHTML = formatAddress(b.tags, b.lat, b.lon);
+      } else {
+        sidebarAddress.innerHTML = "Loading address...";
+        const addr = await reverseGeocode(b.lat, b.lon);
+        sidebarAddress.innerHTML = addr;
+      }
+    }
+
+    loadBathroomDetails(b.osm_id);
+    sidebar.open("info");
+    routeTo(b.lat, b.lon);
+  });
+
+  return li;
+}
+
+function renderList(container, items, emptyMsg = "No bathrooms found.") {
+  if (!container) return;
+  container.innerHTML = "";
+  if (!items || items.length === 0) {
+    container.innerHTML = `<li class="text-gray-500 italic text-xs">${emptyMsg}</li>`;
+    return;
+  }
+  items.forEach((item) => {
+    container.appendChild(createBathroomListItem(item));
+  });
+}
+
+async function fetchRecommendations() {
+  const center = map.getCenter();
+  try {
+    const res = await fetch(
+      `/api/bathrooms/recommendations?lat=${center.lat}&lon=${center.lng}`,
+    );
+    if (!res.ok) return;
+    const data = await res.json();
+
+    renderList(listTopRated, data.top_rated);
+    renderList(listMostPopular, data.most_favorited);
+    renderList(listNearest, data.nearest);
+
+    // Also fetch user favorites specifically to populate that list
+    // We already have userFavorites Set, but we need full details.
+    // For simplicity, let's filter from the full list if we had it,
+    // but we don't have full list in memory with details easily accessible without query.
+    // So let's fetch details for favorites.
+    // Actually, let's just show "Your Favorites" from the IDs we have if we can fetch them.
+    // For now, let's leave "Your Favorites" as a TODO or fetch them individually.
+    // Better: Add a route to get full details of favorites.
+    // For this iteration, I will skip rendering "Your Favorites" full details
+    // unless I add another endpoint or reuse existing.
+    // Let's reuse fetchFavorites() but that only returns IDs.
+    // I'll add a quick client-side fetch for favorites details if the list is small.
+    if (userFavorites.size > 0) {
+      const favs = [];
+      for (const id of userFavorites) {
+        try {
+          const r = await fetch(`/api/bathrooms/${id}`);
+          if (r.ok) favs.push(await r.json());
+        } catch (e) {}
+      }
+      renderList(
+        listFavorites,
+        favs,
+        "You haven't favorited any bathrooms yet.",
+      );
+    } else {
+      renderList(listFavorites, [], "You haven't favorited any bathrooms yet.");
+    }
+  } catch (err) {
+    console.error("Failed to fetch recommendations:", err);
+  }
+}
+
+// Debounce function
+function debounce(func, wait) {
+  let timeout;
+  return function (...args) {
+    const context = this;
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func.apply(context, args), wait);
+  };
+}
+
+const debouncedFetchRecommendations = debounce(fetchRecommendations, 1000);
+
+// Listen to map move
+map.on("moveend", debouncedFetchRecommendations);
+
+// Initial fetch
+fetchFavorites().then(() => {
+  debouncedFetchRecommendations();
+});
