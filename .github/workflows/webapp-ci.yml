@@ -9,6 +9,13 @@ on:
 jobs:
   webapp-ci:
     runs-on: ubuntu-latest
+    services:
+      mongo:
+        image: mongo:7
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd="mongosh --quiet --eval 'db.runCommand({ ping: 1 })'" --health-interval=10s --health-timeout=5s --health-retries=5
 
     steps:
       - name: Checkout repository
@@ -25,6 +32,10 @@ jobs:
           if [ -f requirements.txt ]; then
             pip install -r requirements.txt
           fi
+          if [ -f webapp/requirements.txt ]; then
+            pip install -r webapp/requirements.txt
+          fi
+          pip install pytest pytest-cov
 
       - name: Basic syntax check
         run: |
@@ -33,3 +44,9 @@ jobs:
           else
             python -m compileall .
           fi
+
+      - name: Run tests with coverage
+        env:
+          MONGO_URI: ${{ secrets.MONGO_URI || 'mongodb://localhost:27017' }}
+        run: |
+          pytest --cov=webapp --cov=tests --cov-report=term-missing --cov-fail-under=80

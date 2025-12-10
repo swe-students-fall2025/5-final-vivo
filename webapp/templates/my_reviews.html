@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Reviews</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body> 
+    
+    <header>
+        <div class="content-fit">
+            <div class="logo devil">Di2</div>
+            <div class="flex items-center gap-3">
+                <p class="font-medium text-white text-sm hidden sm:block">Welcome, {{ user.name }}!</p>
+                <a href="{{ url_for('main.index') }}"
+                    class="text-sm text-blue-400 hover:text-blue-200 font-medium underline">Back to Map</a>
+                <a href="{{ url_for('auth.logout') }}"
+                    class="text-sm text-red-400 hover:text-red-300 font-medium underline">Logout</a>
+            </div>
+        </div>
+    </header>
+
+    <div class="section" id="reviews-section">
+        <div class="content-fit pt-28 pb-10">
+            <div class="w-full max-w-3xl mx-auto bg-white shadow-2xl rounded-xl border border-gray-200">
+                
+                <div class="px-8 py-5 border-b border-gray-100 bg-gray-50 rounded-t-xl">
+                    <h1 class="text-3xl font-bold text-gray-800 devil">My Bathroom Reviews</h1>
+                    <p class="text-sm text-gray-500 mt-1">All comments and ratings you've left, displayed beautifully.</p>
+                </div>
+
+                {% if reviews %}
+                <ul class="divide-y divide-gray-100 p-6">
+                    {% for review in reviews %}
+                    <li class="py-4 px-2 transition duration-150 rounded-lg hover:bg-gray-50">
+                        <div class="flex justify-between items-start">
+                            <div class="flex flex-col">
+                                <p class="text-lg font-bold text-gray-900">{{ review.bathroom_name }}</p>
+                                {% if review.location_label %}
+                                <p class="text-xs text-gray-500 mt-0.5">Location: {{ review.location_label }}</p>
+                                {% endif %}
+                            </div>
+                            <div class="flex flex-col items-end gap-1 flex-shrink-0">
+                                <span class="text-2xl text-yellow-500 font-bold leading-none">{{ review.rating }}/5</span>
+                                <span class="text-yellow-500 text-sm">
+                                    {{ '★' * (review.rating | round) }}
+                                </span>
+                            </div>
+                        </div>
+                        <p class="text-sm text-gray-700 mt-3">{{ review.comment }}</p>
+                        {% if review.created_at %}
+                        <p class="text-xs text-gray-400 mt-2">Left on {{ review.created_at }}</p>
+                        {% endif %}
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <div class="p-8 text-lg text-gray-600">
+                    <p class="mb-2">You haven't left any reviews yet. Time to explore!</p>
+                    <a href="{{ url_for('main.index') }}" class="text-blue-600 hover:underline">Go explore and share your thoughts!</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

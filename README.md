@@ -20,13 +20,17 @@ Built with Flask and MongoDB, Di2 provides a user-friendly interface for discove
 - **Add New Bathrooms**: Contribute to the community by adding missing bathrooms to the database
 - **Google Login**: Secure authentication using your Google account
 
+## Docker Images
+
+- **Webapp Image:** https://hub.docker.com/r/nateisnataliie/toilet-finder-webapp
+
 ## Group Members
 
 - [Maria Lee](https://github.com/MariaLuo826)
 - [Natalie Han](https://github.com/nateisnataliehan)
 - [Jason Liu](https://github.com/jsl1114)
-- [Teammate 4 Name](Teammate 4 GitHub Username)
-- [Teammate 5 Name](Teammate 5 GitHub Username)
+- [Jack Chen](https://github.com/a247686991)
+- [Angela Gao](https://github.com/Xuan4781)
 
 ## Setup and Installation
 
@@ -82,7 +86,7 @@ To run the application using Docker Compose:
    ```bash
    docker-compose up --build
    ```
-   The application will be available at `http://localhost:8000`
+   The application will be available at `http://localhost:5001`
 
 ## Google OAuth Setup
 
@@ -197,3 +201,6 @@ Configure these secrets in your GitHub repository settings:
 ├── README.md                      # This file
 └── update_addresses.py            # Address update script
 ```
+# trigger build
+# trigger build
+# trigger build
