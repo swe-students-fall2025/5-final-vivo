@@ -72,23 +72,28 @@ def test_add_bathroom_missing_field(app_client, test_db):
     assert resp.status_code == 400
 
 
-def test_get_bathroom_detail_found(app_client, test_db):
+def test_get_bathroom_detail_serializes_fields(app_client, test_db):
     test_db["bathrooms"].insert_one(
         {
             "osm_id": 123,
             "lat": 40.1,
             "lon": -73.9,
             "tags": {"name": "Detail Bathroom"},
-            "reviews": [],
-            "average_rating": None,
-            "rating_count": 0,
+            "reviews": [{"rating": 4, "comment": "nice"}],
+            "images": ["img1"],
+            "average_rating": 4.0,
+            "rating_count": 1,
         }
     )
     resp = app_client.get("/api/bathrooms/123")
     assert resp.status_code == 200
     data = resp.get_json()
-    assert data["osm_id"] == "123"
+    assert data["osm_id"] == 123
     assert data["tags"]["name"] == "Detail Bathroom"
+    assert data["reviews"][0]["comment"] == "nice"
+    assert data["images"] == ["img1"]
+    assert data["average_rating"] == 4.0
+    assert data["rating_count"] == 1
 
 
 def test_get_bathroom_detail_not_found(app_client, test_db):
