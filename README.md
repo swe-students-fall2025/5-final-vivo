@@ -97,7 +97,7 @@ To run the application using Docker Compose:
 5. Configure the OAuth consent screen
 6. Add authorized redirect URIs:
    - For local development: `http://localhost:5000/auth/callback`
-   - For production: `https://your-domain.com/auth/callback`
+   - For production: `http://vivo-tlppd.ondigitalocean.app/auth/callback`
 7. Copy the Client ID and Client Secret to your `.env` file
 
 ## API Routes
