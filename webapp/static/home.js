@@ -47,17 +47,19 @@ function highlightModalStars(rating) {
   modalStars.forEach((star) => {
     const val = parseInt(star.dataset.value);
 
-    star.innerHTML = ""; 
+    let img = star.querySelector("img");
+    if (!img) {
+      img = document.createElement("img");
+      star.appendChild(img);
+    }
 
-    const img = document.createElement("img");
-    img.src = val <= rating ? "/static/img/star.png" : "/static/img/graystar.png"; 
-    img.style.width = "20px";  
+    img.src = val <= rating ? "/static/img/star.png" : "/static/img/graystar.png";
+    img.style.width = "20px";
     img.style.height = "20px";
     img.style.objectFit = "contain";
-
-    star.appendChild(img);
   });
 }
+
 
 // favorite
 async function fetchFavorites() {
@@ -214,7 +216,7 @@ function renderAverageRating(avg = 0, count = 0) {
 submitCommentModalBtn.addEventListener("click", async () => {
   const commentText = modalCommentInput.value.trim();
   if (!commentText || !currentBathroomId) return;
-  if (!modalSelectedRating) {
+  if (modalSelectedRating === null) {
     alert("Please select a rating!");
     return;
   }
