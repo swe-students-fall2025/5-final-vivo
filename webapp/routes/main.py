@@ -26,9 +26,32 @@ def my_reviews_page():
     for doc in cursor:
         osm_id = doc.get("osm_id")
         tags = doc.get("tags", {})
-        bathroom_name = tags.get("name") or f"Bathroom {osm_id}"
+        bathroom_name = (
+            tags.get("name")
+            or tags.get("addr:street")
+            or tags.get("addr:neighbourhood")
+            or f"Bathroom #{osm_id}"
+        )
         lat = doc.get("lat")
         lon = doc.get("lon")
+
+        # Build a readable location label from address tags or coordinates
+        location_label = None
+        address_parts = []
+        if tags.get("addr:housenumber"):
+            address_parts.append(tags["addr:housenumber"])
+        if tags.get("addr:street"):
+            address_parts.append(tags["addr:street"])
+        if tags.get("addr:neighbourhood"):
+            address_parts.append(tags["addr:neighbourhood"])
+        if tags.get("addr:city"):
+            address_parts.append(tags["addr:city"])
+
+        if address_parts:
+            location_label = ", ".join(address_parts)
+        elif lat is not None and lon is not None:
+            location_label = f"{round(lat, 4)}, {round(lon, 4)}"
+
         for review in doc.get("reviews", []):
             if review.get("user_email") == user_email:
                 created_at = review.get("created_at")
@@ -47,6 +70,7 @@ def my_reviews_page():
                     {
                         "osm_id": osm_id,
                         "bathroom_name": bathroom_name,
+                        "location_label": location_label,
                         "rating": review.get("rating"),
                         "comment": review.get("comment"),
                         "created_at": display_date,

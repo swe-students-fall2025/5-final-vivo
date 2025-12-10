@@ -36,8 +36,8 @@
                     <div class="flex justify-between items-start">
                         <div>
                             <p class="text-base font-semibold text-gray-900">{{ review.bathroom_name }}</p>
-                            {% if review.lat and review.lon %}
-                            <p class="text-xs text-gray-500">Location: {{ review.lat }}, {{ review.lon }}</p>
+                            {% if review.location_label %}
+                            <p class="text-xs text-gray-500">Location: {{ review.location_label }}</p>
                             {% endif %}
                         </div>
                         <div class="flex items-center gap-2">
