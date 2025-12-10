@@ -126,15 +126,18 @@
                         </p>
                     </div>
 
-                    <!-- Average Rating -->
-                    <div id="average-rating" class="flex items-center space-x-2 mb-2">
-                        <div id="average-stars" class="flex text-yellow-400 text-xl"></div>
-                        <span id="average-number" class="text-gray-800 font-medium"></span>
-                        <span id="rating-count" class="text-gray-600 text-sm"></span>
-                    </div>
-
                     <!-- Photo -->
                     <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="text-sm font-semibold text-gray-800">Bathroom Photos</h3>
+                            <button id="add-image-btn" 
+                                    class="circular-btn-small" 
+                                    title="Add Photo">
+                                +
+                            </button>
+                        </div>
+                        <input type="file" id="image-input" accept="image/*" class="hidden">
+                        
                         <div class="swiper bathroom-swiper">
                             <div class="swiper-wrapper">
                             </div>
@@ -142,36 +145,29 @@
                             <div class="swiper-button-prev"></div>
                             <div class="swiper-button-next"></div>
                         </div>
-                        <button id="add-image-btn"
-                            class="mt-2 w-full text-xs bg-blue-500 hover:bg-blue-600 text-white font-medium py-1.5 px-3 rounded transition-colors">
-                            Add an image
-                        </button>
-                        <input type="file" id="image-input" accept="image/*" class="hidden">
                     </div>
 
-                    <!-- Review Section -->
-                    <div id="review-section" class="mt-4">
-                        <div class="flex items-center space-x-1 mb-2" id="star-rating">
-                            <span class="star text-xl cursor-pointer" data-value="1">&#9734;</span>
-                            <span class="star text-xl cursor-pointer" data-value="2">&#9734;</span>
-                            <span class="star text-xl cursor-pointer" data-value="3">&#9734;</span>
-                            <span class="star text-xl cursor-pointer" data-value="4">&#9734;</span>
-                            <span class="star text-xl cursor-pointer" data-value="5">&#9734;</span>
-                        </div>
-
-                        <textarea id="comment-input" rows="3" placeholder="Leave your comment..."
-                            class="w-full text-sm border rounded px-2 py-1 focus:outline-none focus:ring focus:ring-blue-300"></textarea>
-
-                        <button id="add-comment-btn"
-                            class="mt-2 w-full bg-green-500 hover:bg-green-600 text-white font-medium py-1.5 px-3 rounded transition-colors">
-                            Submit
-                        </button>
+                    <!-- Average Rating -->
+                    <div id="average-rating" class="flex items-center space-x-2 mb-2">
+                        <div id="average-stars" class="flex text-yellow-400 text-xl"></div>
+                        <span id="average-number" class="text-gray-800 font-medium"></span>
+                        <span id="rating-count" class="text-gray-600 text-sm"></span>
                     </div>
 
                     <!-- Comments List -->
                     <div class="mt-4">
-                        <h3 class="font-medium mb-2">Comments</h3>
-                        <ul id="comments-list" class="flex flex-col space-y-2 max-h-40 overflow-y-auto text-sm"></ul>
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="text-sm font-semibold text-gray-800">Comments</h3>
+
+                            <button id="open-comment-modal" 
+                                    class="circular-btn-small"
+                                    title="Add Comment">
+                                +
+                            </button>
+                        </div>
+
+                        <ul id="comments-list"
+                            class="flex flex-col space-y-2 max-h-40 overflow-y-auto text-sm"></ul>
                     </div>
 
                     <!-- Directions -->
@@ -187,6 +183,42 @@
         </div>
     </div>
     <div id="map"></div>
+
+
+    <!-- Comment Modal -->
+    <div id="comment-modal"
+        class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center hidden z-[2000]">
+
+        <div class="bg-white w-80 p-4 rounded-xl shadow-lg space-y-3">
+            <h2 class="text-lg font-semibold text-gray-800">Add Comment</h2>
+
+            <div id="modal-star-rating" class="flex items-center space-x-1">
+                <span class="modal-star text-2xl cursor-pointer" data-value="1">&#9734;</span>
+                <span class="modal-star text-2xl cursor-pointer" data-value="2">&#9734;</span>
+                <span class="modal-star text-2xl cursor-pointer" data-value="3">&#9734;</span>
+                <span class="modal-star text-2xl cursor-pointer" data-value="4">&#9734;</span>
+                <span class="modal-star text-2xl cursor-pointer" data-value="5">&#9734;</span>
+            </div>
+
+            <textarea id="modal-comment-input"
+                    rows="3"
+                    placeholder="Write your comment..."
+                    class="w-full border rounded px-2 py-1 text-sm focus:outline-none focus:ring focus:ring-blue-300"></textarea>
+
+            <div class="flex justify-end gap-2">
+                <button id="close-comment-modal"
+                        class="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300">
+                    Cancel
+                </button>
+
+                <button id="submit-comment-modal"
+                        class="px-3 py-1 rounded bg-green-500 hover:bg-green-600 text-white">
+                    Submit
+                </button>
+            </div>
+        </div>
+    </div>
+
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
         integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="">

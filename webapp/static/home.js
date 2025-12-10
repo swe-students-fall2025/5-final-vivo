@@ -8,10 +8,58 @@ const addCommentBtn = document.getElementById("add-comment-btn");
 const directionsList = document.getElementById("directions-list");
 const directionsSummary = document.getElementById("directions-summary");
 const favoriteBtn = document.getElementById("favorite-btn");
+const commentModal = document.getElementById("comment-modal");
+const openCommentModalBtn = document.getElementById("open-comment-modal");
+const closeCommentModalBtn = document.getElementById("close-comment-modal");
+const submitCommentModalBtn = document.getElementById("submit-comment-modal");
+const modalCommentInput = document.getElementById("modal-comment-input");
+const modalStars = document.querySelectorAll("#modal-star-rating .modal-star");
 
+let modalSelectedRating = null;
 let currentBathroomId = null;
 let userFavorites = new Set();
 
+
+// comment modal
+openCommentModalBtn.addEventListener("click", () => {
+  modalCommentInput.value = "";
+  modalSelectedRating = null;
+  highlightModalStars(0);
+  commentModal.classList.remove("hidden");
+});
+
+closeCommentModalBtn.addEventListener("click", () => {
+  commentModal.classList.add("hidden");
+});
+
+modalStars.forEach((star) => {
+  const val = parseInt(star.dataset.value);
+  star.addEventListener("mouseover", () => highlightModalStars(val));
+  star.addEventListener("mouseout", () => highlightModalStars(modalSelectedRating));
+  star.addEventListener("click", () => {
+    modalSelectedRating = val;
+    highlightModalStars(modalSelectedRating);
+  });
+});
+
+
+function highlightModalStars(rating) {
+  modalStars.forEach((star) => {
+    const val = parseInt(star.dataset.value);
+
+    star.innerHTML = ""; 
+
+    const img = document.createElement("img");
+    img.src = val <= rating ? "/static/img/star.png" : "/static/img/graystar.png"; 
+    img.style.width = "20px";  
+    img.style.height = "20px";
+    img.style.objectFit = "contain";
+
+    star.appendChild(img);
+  });
+}
+
+// favorite
 async function fetchFavorites() {
   try {
     const res = await fetch("/api/users/favorites");
@@ -110,11 +158,9 @@ async function loadBathroomDetails(osm_id) {
       if (myReview) {
         selectedRating = myReview.rating;
         highlightStars(selectedRating);
-        commentInput.value = myReview.comment;
       } else {
         selectedRating = null;
         highlightStars(0);
-        commentInput.value = "";
       }
     } else {
       renderAverageRating(0, 0);
@@ -146,11 +192,17 @@ function renderAverageRating(avg = 0, count = 0) {
   const halfStar = avg - fullStars >= 0.5 ? 1 : 0;
 
   for (let i = 1; i <= 5; i++) {
-    const star = document.createElement("span");
-    if (i <= fullStars) star.textContent = "★";
-    else if (i === fullStars + 1 && halfStar) star.textContent = "⯨";
-    else star.textContent = "☆";
-    starsContainer.appendChild(star);
+    const img = document.createElement("img");
+    if (i <= fullStars) img.src = "/static/img/star.png";
+    else if (i === fullStars + 1 && halfStar) img.src = "/static/img/halfstar.png"; 
+    else img.src = "/static/img/graystar.png"; 
+
+    img.style.width = "20px";
+    img.style.height = "20px";
+    img.style.objectFit = "contain";
+    img.style.marginRight = "2px";
+
+    starsContainer.appendChild(img);
   }
 
   numberSpan.textContent = avg > 0 ? avg.toFixed(1) : "";
@@ -159,10 +211,10 @@ function renderAverageRating(avg = 0, count = 0) {
 }
 
 // post comments
-addCommentBtn.addEventListener("click", async () => {
-  const commentText = commentInput.value.trim();
+submitCommentModalBtn.addEventListener("click", async () => {
+  const commentText = modalCommentInput.value.trim();
   if (!commentText || !currentBathroomId) return;
-  if (!selectedRating) {
+  if (!modalSelectedRating) {
     alert("Please select a rating!");
     return;
   }
@@ -171,7 +223,7 @@ addCommentBtn.addEventListener("click", async () => {
     const res = await fetch(`/api/bathrooms/${currentBathroomId}/reviews`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ comment: commentText, rating: selectedRating }),
+      body: JSON.stringify({ comment: commentText, rating: modalSelectedRating }),
     });
 
     if (!res.ok) {
@@ -187,22 +239,13 @@ addCommentBtn.addEventListener("click", async () => {
       updatedBathroom.rating_count || updatedBathroom.reviews.length,
     );
 
-    const myReview = updatedBathroom.reviews.find(
-      (r) => r.user_email === window.currentUserEmail,
-    );
-    if (myReview) {
-      selectedRating = myReview.rating;
-      highlightStars(selectedRating);
-      commentInput.value = myReview.comment;
-    } else {
-      selectedRating = null;
-      highlightStars(0);
-      commentInput.value = "";
-    }
+    commentModal.classList.add("hidden"); 
   } catch (err) {
     console.error("Failed to post review:", err);
+    alert("Failed to submit comment.");
   }
 });
+
 
 // format address nicely from Overpass tags
 function formatAddress(tags = {}, lat, lon) {
@@ -256,7 +299,7 @@ function showBathroomImages(imageUrls) {
   );
   swiperWrapper.innerHTML = "";
 
-  const images = imageUrls?.length ? imageUrls : ["/static/img/default.png"];
+  const images = imageUrls?.length ? imageUrls : ["/static/img/default.svg"];
   images.forEach((url) => {
     const slide = document.createElement("div");
     slide.classList.add("swiper-slide");
