@@ -27,8 +27,9 @@ def test_db():
 
 @pytest.fixture
 def app_client(test_db, monkeypatch):
-    monkeypatch.setattr(app_module, "bathrooms_collection", test_db["bathrooms"])
-    monkeypatch.setattr(app_module, "users_collection", test_db["users"])
+    monkeypatch.setattr(app_module.api, "bathrooms_collection", test_db["bathrooms"])
+    monkeypatch.setattr(app_module.api, "users_collection", test_db["users"])
+    monkeypatch.setattr(app_module.auth, "users_collection", test_db["users"])
     app_module.app.testing = True
     with app_module.app.test_client() as client:
         yield client

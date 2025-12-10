@@ -1,7 +1,7 @@
 from flask import Blueprint, url_for, session, redirect, flash
-from extensions import oauth
-from db import users_collection
 from datetime import datetime
+from webapp.extensions import oauth
+from webapp.db import users_collection
 
 bp = Blueprint("auth", __name__)
 
