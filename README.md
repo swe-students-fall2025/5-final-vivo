@@ -22,7 +22,7 @@ Built with Flask and MongoDB, Di2 provides a user-friendly interface for discove
 
 ## Docker Images
 
-- **Webapp Image:** [https://hub.docker.com/r/nateisnataliie/toilet-finder-webapp]
+- **Webapp Image:** https://hub.docker.com/r/nateisnataliie/toilet-finder-webapp
 
 ## Group Members
 
