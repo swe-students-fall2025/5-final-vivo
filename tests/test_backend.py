@@ -75,7 +75,7 @@ def test_add_bathroom_missing_field(app_client, test_db):
 def test_get_bathroom_detail_found(app_client, test_db):
     test_db["bathrooms"].insert_one(
         {
-            "osm_id": "123",
+            "osm_id": 123,
             "lat": 40.1,
             "lon": -73.9,
             "tags": {"name": "Detail Bathroom"},
