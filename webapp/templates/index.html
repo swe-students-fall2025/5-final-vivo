@@ -58,7 +58,13 @@
                 <div class="p-3 space-y-4 text-sm">
                     <!-- Title + address -->
                     <div>
-                        <h2 id="bathroom-title" class="text-base font-semibold mb-1">Select a bathroom</h2>
+                        <div class="flex justify-between items-start">
+                            <h2 id="bathroom-title" class="text-base font-semibold mb-1">Select a bathroom</h2>
+                            <button id="favorite-btn" class="text-gray-400 hover:text-red-500 transition-colors"
+                                title="Add to favorites">
+                                <i class="fa fa-heart text-xl"></i>
+                            </button>
+                        </div>
                         <p id="bathroom-address" class="text-gray-600">
                             Click a pin to see the address.
                         </p>

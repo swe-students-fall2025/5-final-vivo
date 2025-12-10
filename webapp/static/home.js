@@ -7,8 +7,65 @@ const commentInput = document.getElementById("comment-input");
 const addCommentBtn = document.getElementById("add-comment-btn");
 const directionsList = document.getElementById("directions-list");
 const directionsSummary = document.getElementById("directions-summary");
+const favoriteBtn = document.getElementById("favorite-btn");
 
 let currentBathroomId = null;
+let userFavorites = new Set();
+
+async function fetchFavorites() {
+  try {
+    const res = await fetch("/api/users/favorites");
+    if (res.ok) {
+      const data = await res.json();
+      userFavorites = new Set(data.favorites);
+    }
+  } catch (err) {
+    console.error("Failed to fetch favorites:", err);
+  }
+}
+
+function updateFavoriteButton(osm_id) {
+  if (!favoriteBtn) return;
+  if (userFavorites.has(osm_id)) {
+    favoriteBtn.classList.remove("text-gray-400");
+    favoriteBtn.classList.add("text-red-500");
+  } else {
+    favoriteBtn.classList.add("text-gray-400");
+    favoriteBtn.classList.remove("text-red-500");
+  }
+}
+
+if (favoriteBtn) {
+  favoriteBtn.addEventListener("click", async (e) => {
+    e.stopPropagation(); // Prevent bubbling if needed
+    if (!currentBathroomId) return;
+
+    const isFav = userFavorites.has(currentBathroomId);
+    const method = isFav ? "DELETE" : "POST";
+
+    try {
+      const res = await fetch(`/api/users/favorites/${currentBathroomId}`, {
+        method,
+      });
+      if (res.ok) {
+        if (isFav) {
+          userFavorites.delete(currentBathroomId);
+        } else {
+          userFavorites.add(currentBathroomId);
+        }
+        updateFavoriteButton(currentBathroomId);
+      } else {
+        console.error("Failed to toggle favorite");
+      }
+    } catch (err) {
+      console.error("Error toggling favorite:", err);
+    }
+  });
+}
+
+// Call fetchFavorites on load
+fetchFavorites();
+
 function renderComments(reviews = []) {
   if (!commentsList) return;
   commentsList.innerHTML = "";
@@ -31,6 +88,7 @@ function renderComments(reviews = []) {
 
 // fetch details for bathroom (reviews + images)
 async function loadBathroomDetails(osm_id) {
+  updateFavoriteButton(osm_id);
   try {
     const res = await fetch(`/api/bathrooms/${osm_id}`);
     const data = await res.json();

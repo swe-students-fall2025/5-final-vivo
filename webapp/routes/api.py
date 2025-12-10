@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request, session
-from db import bathrooms_collection
+from db import bathrooms_collection, users_collection
 from datetime import datetime
 
 bp = Blueprint("api", __name__, url_prefix="/api")
@@ -296,3 +296,52 @@ def add_bathroom_image(osm_id):
 
     updated = bathrooms_collection.find_one({"osm_id": osm_id})
     return jsonify(serialize_bathroom(updated)), 201
+
+
+@bp.route("/users/favorites", methods=["GET"])
+def get_favorites():
+    user = session.get("user")
+    if not user:
+        return jsonify({"error": "User not logged in"}), 401
+
+    user_doc = users_collection.find_one({"email": user["email"]})
+    if not user_doc:
+        return jsonify({"favorites": []})
+
+    return jsonify({"favorites": user_doc.get("favorites", [])})
+
+
+@bp.route("/users/favorites/<string:osm_id>", methods=["POST"])
+def add_favorite(osm_id):
+    try:
+        osm_id = int(osm_id)
+    except ValueError:
+        return jsonify({"error": "Invalid osm_id"}), 400
+
+    user = session.get("user")
+    if not user:
+        return jsonify({"error": "User not logged in"}), 401
+
+    users_collection.update_one(
+        {"email": user["email"]}, {"$addToSet": {"favorites": osm_id}}
+    )
+
+    return jsonify({"message": "Added to favorites", "osm_id": osm_id}), 200
+
+
+@bp.route("/users/favorites/<string:osm_id>", methods=["DELETE"])
+def remove_favorite(osm_id):
+    try:
+        osm_id = int(osm_id)
+    except ValueError:
+        return jsonify({"error": "Invalid osm_id"}), 400
+
+    user = session.get("user")
+    if not user:
+        return jsonify({"error": "User not logged in"}), 401
+
+    users_collection.update_one(
+        {"email": user["email"]}, {"$pull": {"favorites": osm_id}}
+    )
+
+    return jsonify({"message": "Removed from favorites", "osm_id": osm_id}), 200
