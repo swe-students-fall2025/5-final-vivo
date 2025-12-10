@@ -11,3 +11,7 @@ html, body {
 .leaflet-sidebar {
     z-index: 900;
 }
+
+.leaflet-routing-container {
+    display: none !important;
+}
