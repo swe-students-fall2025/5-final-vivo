@@ -30,7 +30,7 @@ Built with Flask and MongoDB, Di2 provides a user-friendly interface for discove
 - [Natalie Han](https://github.com/nateisnataliehan)
 - [Jason Liu](https://github.com/jsl1114)
 - [Jack Chen](https://github.com/a247686991)
-- [Teammate 5 Name](Teammate 5 GitHub Username)
+- [Angela Gao](https://github.com/Xuan4781)
 
 ## Setup and Installation
 
