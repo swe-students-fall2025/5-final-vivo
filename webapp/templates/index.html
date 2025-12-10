@@ -14,7 +14,7 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet-sidebar-v2@3.2.0/css/leaflet-sidebar.min.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css" />
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='home.css')}}">
 </head>
@@ -28,7 +28,7 @@
             {% endif %}
             <p class="font-medium text-gray-800">Welcome, {{ user.name }}!</p>
         </div>
-        <a href="{{ url_for('logout') }}"
+        <a href="{{ url_for('auth.logout') }}"
             class="block w-full text-center bg-red-500 hover:bg-red-600 text-white text-sm font-medium py-1.5 px-3 rounded transition-colors duration-200">
             Logout
         </a>
@@ -80,8 +80,7 @@
                             <div class="swiper-button-prev"></div>
                             <div class="swiper-button-next"></div>
                         </div>
-                        <button
-                            id="add-image-btn"
+                        <button id="add-image-btn"
                             class="mt-2 w-full text-xs bg-blue-500 hover:bg-blue-600 text-white font-medium py-1.5 px-3 rounded transition-colors">
                             Add an image
                         </button>
@@ -98,15 +97,10 @@
                             <span class="star text-xl cursor-pointer" data-value="5">&#9734;</span>
                         </div>
 
-                        <textarea
-                            id="comment-input"
-                            rows="3"
-                            placeholder="Leave your comment..."
-                            class="w-full text-sm border rounded px-2 py-1 focus:outline-none focus:ring focus:ring-blue-300"
-                        ></textarea>
+                        <textarea id="comment-input" rows="3" placeholder="Leave your comment..."
+                            class="w-full text-sm border rounded px-2 py-1 focus:outline-none focus:ring focus:ring-blue-300"></textarea>
 
-                        <button
-                            id="add-comment-btn"
+                        <button id="add-comment-btn"
                             class="mt-2 w-full bg-green-500 hover:bg-green-600 text-white font-medium py-1.5 px-3 rounded transition-colors">
                             Submit
                         </button>
@@ -121,7 +115,8 @@
                     <!-- Directions -->
                     <div class="mt-4">
                         <h3 class="font-medium mb-2">Directions</h3>
-                        <ul id="directions-list" class="flex-1 overflow-y-auto text-xs space-y-1 list-decimal list-inside"></ul>
+                        <ul id="directions-list"
+                            class="flex-1 overflow-y-auto text-xs space-y-1 list-decimal list-inside"></ul>
                         <p id="directions-summary" class="mt-1 text-xs text-gray-600"></p>
                     </div>
 
@@ -133,7 +128,7 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
         integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="">
-    </script>
+        </script>
     <script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
     <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
     <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
