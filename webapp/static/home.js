@@ -29,11 +29,13 @@ function renderComments(reviews = []) {
   });
 }
 
-// fetch comments for bathroom
-async function loadBathroomReviews(osm_id) {
+// fetch details for bathroom (reviews + images)
+async function loadBathroomDetails(osm_id) {
   try {
-    const res = await fetch(`/api/bathrooms/${osm_id}/reviews`);
+    const res = await fetch(`/api/bathrooms/${osm_id}`);
     const data = await res.json();
+
+    // 1. Handle Reviews
     if (data.reviews) {
       renderComments(data.reviews);
 
@@ -59,8 +61,19 @@ async function loadBathroomReviews(osm_id) {
     } else {
       renderAverageRating(0, 0);
     }
+
+    // 2. Handle Images
+    const imageUrls = [];
+    const tags = data.tags || {};
+    if (tags.image) imageUrls.push(tags.image);
+    if (tags.images && Array.isArray(tags.images))
+      imageUrls.push(...tags.images);
+    if (data.images && Array.isArray(data.images)) {
+      imageUrls.push(...data.images);
+    }
+    showBathroomImages(imageUrls);
   } catch (err) {
-    console.error("Failed to load reviews:", err);
+    console.error("Failed to load details:", err);
   }
 }
 
@@ -212,7 +225,7 @@ if (addImageBtn && imageInput) {
     const reader = new FileReader();
     reader.onload = function (e) {
       const img = new Image();
-      img.onload = function () {
+      img.onload = async function () {
         const maxWidth = 600;
         const maxHeight = 400;
         let width = img.width;
@@ -232,35 +245,61 @@ if (addImageBtn && imageInput) {
         const ctx = canvas.getContext("2d");
         ctx.drawImage(img, 0, 0, width, height);
         const resizedUrl = canvas.toDataURL("image/png");
-        // add
-        const swiperWrapper = document.querySelector(
-          ".bathroom-swiper .swiper-wrapper",
-        );
 
-        // remove default
-        if (
-          swiperWrapper.children.length === 1 &&
-          swiperWrapper.children[0]
-            .querySelector("img")
-            .src.includes("default.png")
-        ) {
-          swiperWrapper.innerHTML = "";
+        if (!currentBathroomId) {
+          alert("No bathroom selected!");
+          return;
         }
 
-        const slide = document.createElement("div");
-        slide.classList.add("swiper-slide");
+        try {
+          const res = await fetch(
+            `/api/bathrooms/${currentBathroomId}/images`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ image: resizedUrl }),
+            },
+          );
 
-        const newImg = document.createElement("img");
-        newImg.src = resizedUrl;
-        newImg.style.width = "100%";
-        newImg.style.height = "auto";
-        newImg.style.borderRadius = "8px";
+          if (!res.ok) {
+            const errData = await res.json();
+            alert(`Error uploading image: ${errData.error}`);
+            return;
+          }
 
-        slide.appendChild(newImg);
-        swiperWrapper.appendChild(slide);
+          // add
+          const swiperWrapper = document.querySelector(
+            ".bathroom-swiper .swiper-wrapper",
+          );
 
-        bathroomSwiper.update();
-        bathroomSwiper.slideTo(swiperWrapper.children.length - 1);
+          // remove default
+          if (
+            swiperWrapper.children.length === 1 &&
+            swiperWrapper.children[0]
+              .querySelector("img")
+              .src.includes("default.png")
+          ) {
+            swiperWrapper.innerHTML = "";
+          }
+
+          const slide = document.createElement("div");
+          slide.classList.add("swiper-slide");
+
+          const newImg = document.createElement("img");
+          newImg.src = resizedUrl;
+          newImg.style.width = "100%";
+          newImg.style.height = "auto";
+          newImg.style.borderRadius = "8px";
+
+          slide.appendChild(newImg);
+          swiperWrapper.appendChild(slide);
+
+          bathroomSwiper.update();
+          bathroomSwiper.slideTo(swiperWrapper.children.length - 1);
+        } catch (err) {
+          console.error("Failed to upload image:", err);
+          alert("Failed to upload image.");
+        }
       };
       img.src = e.target.result;
     };
@@ -514,13 +553,7 @@ function fetchBathrooms() {
             }
           }
 
-          const imageUrls = [];
-          if (tags.image) imageUrls.push(tags.image);
-          if (tags.images && Array.isArray(tags.images))
-            imageUrls.push(...tags.images);
-
-          showBathroomImages(imageUrls);
-          loadBathroomReviews(id);
+          loadBathroomDetails(id);
           sidebar.open("info");
           routeTo(lat, lon);
         });

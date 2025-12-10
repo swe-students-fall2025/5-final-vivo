@@ -14,6 +14,7 @@ def serialize_bathroom(doc):
         "lon": doc.get("lon"),
         "tags": doc.get("tags", {}),
         "reviews": doc.get("reviews", []),
+        "images": doc.get("images", []),
         "average_rating": doc.get("average_rating"),
         "rating_count": doc.get("rating_count", 0),
     }
@@ -51,6 +52,10 @@ def get_bathrooms_full():
 
 @bp.route("/bathrooms/<string:osm_id>", methods=["GET"])
 def get_bathroom_detail(osm_id):
+    try:
+        osm_id = int(osm_id)
+    except ValueError:
+        return jsonify({"error": "Invalid osm_id"}), 400
     doc = bathrooms_collection.find_one({"osm_id": osm_id})
     if not doc:
         return jsonify({"error": "Bathroom not found"}), 404
@@ -262,3 +267,32 @@ def delete_bathroom_review(osm_id):
 
     updated = bathrooms_collection.find_one({"osm_id": osm_id})
     return jsonify(serialize_bathroom(updated)), 200
+
+
+@bp.route("/bathrooms/<string:osm_id>/images", methods=["POST"])
+def add_bathroom_image(osm_id):
+    try:
+        osm_id = int(osm_id)
+    except ValueError:
+        return jsonify({"error": "Invalid osm_id"}), 400
+
+    doc = bathrooms_collection.find_one({"osm_id": osm_id})
+    if not doc:
+        return jsonify({"error": "Bathroom not found"}), 404
+
+    user = session.get("user")
+    if not user:
+        return jsonify({"error": "User not logged in"}), 401
+
+    data = request.get_json() or {}
+    image_data = data.get("image")
+
+    if not image_data:
+        return jsonify({"error": "No image data provided"}), 400
+
+    bathrooms_collection.update_one(
+        {"osm_id": osm_id}, {"$push": {"images": image_data}}
+    )
+
+    updated = bathrooms_collection.find_one({"osm_id": osm_id})
+    return jsonify(serialize_bathroom(updated)), 201

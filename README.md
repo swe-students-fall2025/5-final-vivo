@@ -24,7 +24,7 @@ Built with Flask and MongoDB, Di2 provides a user-friendly interface for discove
 
 - [Maria Lee] ([https://github.com/MariaLuo826])
 - [Natalie Han] ([https://github.com/nateisnataliehan])
-- [Teammate 3 Name] ([Teammate 3 GitHub Username])
+- [Jason Liu] ([https://github.com/jsl1114])
 - [Teammate 4 Name] ([Teammate 4 GitHub Username])
 - [Teammate 5 Name] ([Teammate 5 GitHub Username])
 
@@ -110,6 +110,7 @@ To run the application using Docker Compose:
 - `GET /api/bathrooms/full` - Get complete bathroom data with reviews
 - `GET /api/bathrooms/<osm_id>` - Get details for specific bathroom
 - `POST /api/bathrooms/add` - Add new bathroom
+- `POST /api/bathrooms/<osm_id>/images` - Add an image to bathroom
 
 ### Review API Routes
 - `GET /api/bathrooms/<osm_id>/reviews` - Get reviews for specific bathroom
