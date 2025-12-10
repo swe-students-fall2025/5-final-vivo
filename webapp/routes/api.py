@@ -145,7 +145,7 @@ def get_bathrooms():
 
     keyword = request.args.get("q", type=str)
     sort_param = request.args.get("sort", type=str)
-    limit = request.args.get("limit", default=100, type=int)
+    limit = request.args.get("limit", default=2000, type=int)
 
     query: dict = {}
 
